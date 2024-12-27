@@ -37,6 +37,20 @@
       <el-menu-item index="3-1" class="menu">项目授权情况</el-menu-item>
       <el-menu-item index="3-2" class="menu">借票申请列表</el-menu-item>
     </el-sub-menu>
+    <el-sub-menu index="5" class="menu">
+      <template #title>
+        <el-icon><Management /></el-icon>
+        <span>凭证处理</span>
+      </template>
+      <el-menu-item index="4-1" class="menu">工资凭证处理</el-menu-item>
+    </el-sub-menu>
+    <el-sub-menu index="6" class="menu">
+      <template #title>
+        <el-icon><Management /></el-icon>
+        <span>管理配置</span>
+      </template>
+      <el-menu-item index="4-1" class="menu">权限管理</el-menu-item>
+    </el-sub-menu>
 
 
 
