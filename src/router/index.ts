@@ -4,9 +4,13 @@ import {useUserStore} from "@/stores";
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [ // 登录页
-        { path: '/login', component: () => import('@/components/Login.vue') },
+        { path: '/login', component: () => import('@/components/Login.vue') , keepAlive:false},
         // 布局页
-        { path: '/', component: () => import('@/components/Index.vue') }
+         { path: '/', component: () => import('@/components/Index.vue') ,keepAlive:true},
+        { path: '/program', component: () => import('@/components/Program.vue') ,keepAlive:true},
+        { path: '/student', component: () => import('@/components/Student.vue') ,keepAlive:true},
+        { path: '/teacher', component: () => import('@/components/Teacher.vue'),keepAlive:true },
+        { path: '/voucher', component: () => import('@/components/Voucher.vue') ,keepAlive:true}
 ]
 })
 

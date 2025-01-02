@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { loginService } from '@/api/user'
-import { useUserStore } from '@/stores'
-import { useRouter } from 'vue-router'
+import {ref} from 'vue'
+import {useUserStore} from '@/stores'
+import {useRouter} from 'vue-router'
 import {ElMessage} from "element-plus";
+
 const form = ref()
 const router = useRouter()
 const userStore = useUserStore()

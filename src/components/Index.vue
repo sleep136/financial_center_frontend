@@ -1,90 +1,75 @@
-<script setup lang="ts">
-// import Student from './Student.vue'
-// import Teacher from './Teacher.vue'
-import {
-  Document,
-  Menu as IconMenu,
-  Location,
-  Setting,
-} from '@element-plus/icons-vue'
-import NarBar from "@/components/NarBar.vue";
-
-const handleOpen = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath)
-}
-const handleClose = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath)
-}
-</script>
-
 <template>
-  <el-container>
-    <el-aside class="side"  width="collapse">
-      <!-- 侧边栏 -->
-      <NarBar ref="narbar"/>
-    </el-aside>
-  </el-container>>
-<!--  <el-row class="tac">-->
 
-<!--    <el-col :span="12">-->
-<!--      <h5 class="mb-2">Default colors</h5>-->
-<!--      <el-menu-->
-<!--          default-active="2"-->
-<!--          class="el-menu-vertical-demo"-->
-<!--          @open="handleOpen"-->
-<!--          @close="handleClose"-->
-<!--      >-->
-<!--        <el-sub-menu index="1">-->
-<!--          <template #title>-->
-<!--            <el-icon>-->
-<!--              <location/>-->
-<!--            </el-icon>-->
-<!--            <span>Navigator One</span>-->
-<!--          </template>-->
-<!--          <el-menu-item-group title="Group One">-->
-<!--            <el-menu-item index="1-1">item one</el-menu-item>-->
-<!--            <el-menu-item index="1-2">item two</el-menu-item>-->
-<!--          </el-menu-item-group>-->
-<!--          <el-menu-item-group title="Group Two">-->
-<!--            <el-menu-item index="1-3">item three</el-menu-item>-->
-<!--          </el-menu-item-group>-->
-<!--          <el-sub-menu index="1-4">-->
-<!--            <template #title>item four</template>-->
-<!--            <el-menu-item index="1-4-1">item one</el-menu-item>-->
-<!--          </el-sub-menu>-->
-<!--        </el-sub-menu>-->
-<!--        <el-menu-item index="2">-->
-<!--          <el-icon>-->
-<!--            <icon-menu/>-->
-<!--          </el-icon>-->
-<!--          <span>Navigator Two</span>-->
-<!--        </el-menu-item>-->
-<!--        <el-menu-item index="3" disabled>-->
-<!--          <el-icon>-->
-<!--            <document/>-->
-<!--          </el-icon>-->
-<!--          <span>Navigator Three</span>-->
-<!--        </el-menu-item>-->
-<!--        <el-menu-item index="4">-->
-<!--          <el-icon>-->
-<!--            <setting/>-->
-<!--          </el-icon>-->
-<!--          <span>Navigator Four</span>-->
-<!--        </el-menu-item>-->
-<!--      </el-menu>-->
-<!--    </el-col>-->
 
-<!--  </el-row>-->
 </template>
 
+<script setup lang="ts">
+import {ref, defineExpose} from 'vue'
+import {Management} from '@element-plus/icons-vue'
+import {useRouter} from 'vue-router'
+
+import {useRouterStore} from "@/stores";
+
+const router = useRouter()
+const routerStore = useRouterStore()
+const isCollapse = ref(false)
+
+const handleOpen = (key, keyPath) => {
+  console.log(key, keyPath)
+}
+const handleClose = (key, keyPath) => {
+  console.log(key, keyPath);
+}
+
+defineExpose({
+  isCollapse,
+})
+
+// const addTab = (routePath)=>{
+
+// 点击更换导航栏图片
+const NavigationBarChanges = (e) => {
+  var domList = e.currentTarget.parentNode.children
+  for (let d = 0; d < domList.length; d++) {
+    domList[d].className = 'nav-item'
+  }
+  console.log("点击", e.currentTarget)
+  e.currentTarget.className = 'nav-item isclick'
+
+}
+window.addEventListener('popstate', () => {
+  if (router.currentRoute.value.name) {
+    routerStore.setCurrentSelected(router.currentRoute)
+  }
+})
+</script>
+
 <style scoped>
-.tac {
-  color: #fff;
-  font-size: large;
-  margin-top: 40px;
-  top: 20px;
-  height: 45px;
-  width: 30%;
-  background-image: linear-gradient(to right, #a6c1ee, #fbc2eb);
+.el-menu-vertical, .el-menu-vertical:not(.el-menu--collapse) {
+  height: 100vh;
+}
+
+.titleName {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.menu {
+  font-size: 14px;
+
+}
+.container{
+  display: flex;
+  justify-content: space-between;
+}
+.bar {
+  width: 200px;
+
+}
+.content {
+  width: calc(100vw - 200px);
+}
+.main{
+  padding: 20px;
 }
 </style>

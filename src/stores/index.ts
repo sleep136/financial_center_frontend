@@ -13,3 +13,5 @@ export default pinia
 
 // 导出user模块中的所有内容，集成用户状态管理模块
 export * from './modules/user.ts'
+
+export * from './modules/router.ts'

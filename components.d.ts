@@ -10,6 +10,7 @@ declare module 'vue' {
     ElAside: typeof import('element-plus/es')['ElAside']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
+    ElCascader: typeof import('element-plus/es')['ElCascader']
     ElCol: typeof import('element-plus/es')['ElCol']
     ElContainer: typeof import('element-plus/es')['ElContainer']
     ElForm: typeof import('element-plus/es')['ElForm']
@@ -21,8 +22,11 @@ declare module 'vue' {
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
     ElMenuItemGroup: typeof import('element-plus/es')['ElMenuItemGroup']
+    ElPagination: typeof import('element-plus/es')['ElPagination']
     ElRow: typeof import('element-plus/es')['ElRow']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
+    ElTable: typeof import('element-plus/es')['ElTable']
+    ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     HeaderContent: typeof import('./src/components/HeaderContent.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     Index: typeof import('./src/components/Index.vue')['default']
@@ -33,5 +37,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Student: typeof import('./src/components/Student.vue')['default']
     Teacher: typeof import('./src/components/Teacher.vue')['default']
+    Voucher: typeof import('./src/components/Voucher.vue')['default']
   }
 }
