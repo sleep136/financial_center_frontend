@@ -10,8 +10,10 @@ const router = createRouter({
         { path: '/program', component: () => import('@/components/Program.vue') ,keepAlive:true},
         { path: '/student', component: () => import('@/components/Student.vue') ,keepAlive:true},
         { path: '/teacher', component: () => import('@/components/Teacher.vue'),keepAlive:true },
-        { path: '/voucher', component: () => import('@/components/Voucher.vue') ,keepAlive:true}
-]
+        { path: '/voucher', component: () => import('@/components/Voucher.vue') ,keepAlive:true},
+        { path: '/method_of_account_title_summary', component: () => import('@/components/AccountTitleSummary.vue') ,keepAlive:true}
+
+    ]
 })
 
 router.beforeEach((to, from, next) => {
