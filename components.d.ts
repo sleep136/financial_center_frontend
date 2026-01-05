@@ -32,4 +32,7 @@ declare module 'vue' {
     Teacher: typeof import('./src/components/Teacher.vue')['default']
     Voucher: typeof import('./src/components/Voucher.vue')['default']
   }
+  export interface ComponentCustomProperties {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
+  }
 }

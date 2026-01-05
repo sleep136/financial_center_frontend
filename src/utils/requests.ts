@@ -4,14 +4,15 @@ import router from '../router'
 import { ElMessage } from 'element-plus'
 
 // 设置后端地址
-const baseURL = 'http://localhost:8090'
+const baseURL = 'http://localhost:8000'
 
 /**
  * @description 创建axios实例
  */
 const instance = axios.create({
     baseURL,
-    timeout: 60000 // 设置响应时间：1min
+    timeout: 60000, // 设置响应时间：1min
+    withCredentials: true
 })
 
 /**
@@ -22,10 +23,19 @@ instance.interceptors.request.use(
         const userStore = useUserStore()
         // 添加token到http请求头的Authorization
         if (userStore.token) {
-            config.headers.Authorization = userStore.token
+            config.headers.Authorization = `Bearer ${userStore.token}`  // 通常有 Bearer 前缀
+        }
+
+        // 对于 GET 请求，确保 params 正确序列化
+        if (config.method === 'get' && config.params) {
+            // 移除 undefined 或 null 的参数
+            config.params = Object.fromEntries(
+                Object.entries(config.params).filter(([_, v]) => v != null)
+            )
         }
         return config
     },
+
     (err) => Promise.reject(err)
 )
 
