@@ -3,6 +3,7 @@
     <shared-form
         v-model:department_id="formData.department_id"
         v-model:program_id="formData.program_id"
+        v-model:filter_state="formData.filter_state"
     />
     <el-tabs v-model="activeTab">
       <el-tab-pane label="报销明细" name="报销明细">
@@ -15,7 +16,8 @@
           <el-table-column prop="department_id" label="部门编号"/>
           <el-table-column prop="abstract" label="摘要"/>
           <el-table-column prop="operator" label="经办人"/>
-          <el-table-column prop="state" label="状态"/>
+          <el-table-column prop="amount" label="金额"/>
+          <el-table-column prop="state" label="状态"  :formatter="statusFormatter"/>
         </el-table>
 
         <el-pagination
@@ -41,8 +43,9 @@
           <el-table-column prop="department_id" label="部门编号"/>
           <el-table-column prop="abstract" label="摘要"/>
           <el-table-column prop="operator" label="经办人"/>
-          <el-table-column prop="state" label="状态"/>
-          <el-table-column prop="type" label="劳务类型"/>
+          <el-table-column prop="state" label="状态" :formatter="laborCostStatusFormatter"/>
+          <el-table-column prop="amount" label="金额"/>
+          <el-table-column prop="type" label="劳务类型" :formatter="laborCostTypeFormatter"/>
         </el-table>
 
         <el-pagination
@@ -113,13 +116,13 @@ async function fetchReservationData() {
       params: {
         program_id: formData.program_id || '',
         department_id: formData.department_id || '',
-
+        filter_state: formData.filter_state || 1,
       }
     })
-
+    console.info('请求报销明细:', response)
     // 假设接口返回格式为 { data: [], total: 0, ... }
-    reservationTableData.value = response.data.data || response.data
-    reservationPagination.total = response.data.total || 0
+    reservationTableData.value = response
+    // reservationPagination.total = response.data.total || 0
 
     if (reservationTableData.value.length === 0) {
       ElMessage.info('暂无报销明细数据')
@@ -143,17 +146,17 @@ function handleReservationPageChange(page) {
 async function fetchLaborData() {
   loading.labor = true
   try {
-    const response = await request.get('/program/labor', { // 请根据实际接口调整
+    const response = await request.get('/program/labor_cost', { // 请根据实际接口调整
       params: {
         program_id: formData.program_id || '',
         department_id: formData.department_id || '',
-
+        filter_state: formData.filter_state || 1,
       }
     })
 
     // 假设接口返回格式为 { data: [], total: 0, ... }
-    laborTableData.value = response.data.data || response.data
-    laborPagination.total = response.data.total || 0
+    laborTableData.value = response
+    laborPagination.total = response.total || 0
 
     if (laborTableData.value.length === 0) {
       ElMessage.info('暂无劳务明细数据')
@@ -173,6 +176,40 @@ function handleLaborPageChange(page) {
   fetchLaborData()
 }
 
+
+function statusFormatter(row, column, cellValue) {
+  const statusMap = {
+    1: '进行中',
+    2: '已接单',
+    3: '已完成',
+    4: '被退单',
+    5: '待投递',
+    7: '审批驳回',
+    8: '待审批',
+    9: '审批中'
+  }
+  return statusMap[cellValue] || cellValue
+}
+
+function laborCostStatusFormatter(row, column, cellValue) {
+  const statusMap = {
+
+    5: '已完成',
+
+  }
+  return statusMap[cellValue] || cellValue
+}
+
+function laborCostTypeFormatter(row, column, cellValue) {
+  const statusMap = {
+
+    1: '校内劳务',
+    2: '校外人员劳务',
+    3: '学生劳务',
+
+  }
+  return statusMap[cellValue] || cellValue
+}
 // 监听标签页切换
 watch(activeTab, (newTab) => {
   if (newTab === '报销明细' && formData.program_id) {

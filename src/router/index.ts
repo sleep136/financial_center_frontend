@@ -8,6 +8,8 @@ const router = createRouter({
         // 布局页
          { path: '/', component: () => import('@/components/Index.vue') ,keepAlive:true},
         { path: '/program', component: () => import('@/components/Program.vue') ,keepAlive:true},
+        { path: '/program_freeze', component: () => import('@/components/ProgramFreeze.vue') ,keepAlive:true},
+       // { path: '/program', component: () => import('@/components/Program.vue') ,keepAlive:true},
         { path: '/student', component: () => import('@/components/Student.vue') ,keepAlive:true},
         { path: '/teacher', component: () => import('@/components/Teacher.vue'),keepAlive:true },
         { path: '/voucher', component: () => import('@/components/Voucher.vue') ,keepAlive:true},

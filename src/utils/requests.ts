@@ -1,7 +1,6 @@
-import { useUserStore } from '../stores'
+import {useUserStore} from '../stores'
 import axios from 'axios'
-import router from '../router'
-import { ElMessage } from 'element-plus'
+import {ElMessage} from 'element-plus'
 
 // 设置后端地址
 const baseURL = 'http://localhost:8000'
@@ -44,24 +43,59 @@ instance.interceptors.request.use(
  */
 instance.interceptors.response.use(
     (res) => {
-        // 响应成功
-        if (res.data.code === 1) {
-            return res
-        }
-        ElMessage({ message: res.data.msg || '服务异常', type: 'error' })
-        return Promise.reject(res.data)
-    },
-    // 失败
-    (err) => {
-        ElMessage({
-            message: err.response.data.msg || '服务异常',
-            type: 'error'
+        console.log('API Response:', {
+            url: res.config.url,
+            status: res.status,
+            data: res.data,
+            headers: res.headers
         })
-        console.log(err)
-        // 如果用户未登录，状态码为 401
-        if (err.response?.status === 401) {
-            router.push('/login')
+
+        // 对于 FastAPI，成功的响应状态码是 200-299
+        // FastAPI 通常直接返回数据，没有 code 字段
+        if (res.status >= 200 && res.status < 300) {
+            // 直接返回 data
+            return res.data
         }
+
+        // 如果有自定义的错误格式
+        if (res.data && res.data.detail) {
+            ElMessage({
+                message: res.data.detail || '请求失败',
+                type: 'error'
+            })
+            return Promise.reject(res.data)
+        }
+
+        return res
+    },
+    // 失败处理
+    (err) => {
+        console.error('API Error:', {
+            message: err.message,
+            status: err.response?.status,
+            data: err.response?.data,
+            url: err.config?.url
+        })
+
+        // FastAPI 的错误响应通常有 detail 字段
+        const errorMsg = err.response?.data?.detail ||
+            err.response?.data?.msg ||
+            err.message ||
+            '服务异常'
+
+        ElMessage({
+            message: errorMsg,
+            type: 'error',
+            duration: 3000
+        })
+
+        // 如果用户未登录，状态码为 401
+        // if (err.response?.status === 401) {
+        //     const userStore = useUserStore()
+        //
+        //     router.push('/login')
+        // }
+
         return Promise.reject(err)
     }
 )

@@ -16,17 +16,7 @@
         @update:model-value="(val) => emit('update:program_id', val)"
     />
   </div>
-  <div class="m-4">
-    <p>是否过滤已完成业务</p>
-    <el-select :model-value="filter_state" placeholder="请选择"  @update:model-value="(val) => emit('update:filter_state', val)">
-      <el-option
-          v-for="item in filter_states"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-      ></el-option>
-    </el-select>
-  </div>
+
 </template>
 
 <script setup>
@@ -54,7 +44,7 @@ const filter_states = [
   {
     label: '否', value: 2
   }]
-const emit = defineEmits(['update:department_id', 'update:program_id','update:filter_state'])
+const emit = defineEmits(['update:department_id', 'update:program_id'])
 </script>
 
 <style scoped>
