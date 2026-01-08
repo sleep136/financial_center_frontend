@@ -47,27 +47,27 @@
             </el-icon>
             <span>教师经费查询</span>
           </template>
-          <el-menu-item index="teacher" class="menu">项目授权情况</el-menu-item>
-          <el-menu-item index="3-2" class="menu">借票申请列表</el-menu-item>
+          <el-menu-item index="authorization" class="menu">项目授权情况</el-menu-item>
+<!--          <el-menu-item index="3-2" class="menu">借票申请列表</el-menu-item>-->
         </el-sub-menu>
-        <el-sub-menu index="5" class="menu">
-          <template #title>
-            <el-icon>
-              <Management/>
-            </el-icon>
-            <span>凭证处理</span>
-          </template>
-          <el-menu-item index="voucher" class="menu">工资凭证处理</el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu index="6" class="menu">
-          <template #title>
-            <el-icon>
-              <Management/>
-            </el-icon>
-            <span>科目汇总</span>
-          </template>
-          <el-menu-item index="method_of_account_title_summary" class="menu">汇总计算</el-menu-item>
-        </el-sub-menu>
+<!--        <el-sub-menu index="5" class="menu">-->
+<!--          <template #title>-->
+<!--            <el-icon>-->
+<!--              <Management/>-->
+<!--            </el-icon>-->
+<!--            <span>凭证处理</span>-->
+<!--          </template>-->
+<!--          <el-menu-item index="voucher" class="menu">工资凭证处理</el-menu-item>-->
+<!--        </el-sub-menu>-->
+<!--        <el-sub-menu index="6" class="menu">-->
+<!--          <template #title>-->
+<!--            <el-icon>-->
+<!--              <Management/>-->
+<!--            </el-icon>-->
+<!--            <span>科目汇总</span>-->
+<!--          </template>-->
+<!--          <el-menu-item index="method_of_account_title_summary" class="menu">汇总计算</el-menu-item>-->
+<!--        </el-sub-menu>-->
         <el-sub-menu index="8" class="menu">
           <template #title>
             <el-icon>
@@ -75,17 +75,17 @@
             </el-icon>
             <span>审批流查询</span>
           </template>
-          <el-menu-item index="4-1" class="menu">审批详情</el-menu-item>
+          <el-menu-item index="approval_workflow" class="menu">审批详情</el-menu-item>
         </el-sub-menu>
-        <el-sub-menu index="8" class="menu">
-          <template #title>
-            <el-icon>
-              <Management/>
-            </el-icon>
-            <span>学生信息查询</span>
-          </template>
-          <el-menu-item index="4-1" class="menu">学生信息查询</el-menu-item>
-        </el-sub-menu>
+<!--        <el-sub-menu index="8" class="menu">-->
+<!--          <template #title>-->
+<!--            <el-icon>-->
+<!--              <Management/>-->
+<!--            </el-icon>-->
+<!--            <span>学生信息查询</span>-->
+<!--          </template>-->
+<!--          <el-menu-item index="4-1" class="menu">学生信息查询</el-menu-item>-->
+<!--        </el-sub-menu>-->
         <el-sub-menu index="9" class="menu">
           <template #title>
             <el-icon>

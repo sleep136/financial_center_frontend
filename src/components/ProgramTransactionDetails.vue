@@ -4,7 +4,7 @@
         v-model:department_id="formData.department_id"
         v-model:program_id="formData.program_id"
     />
-    <el-button @click="fetchFreezeData" :loading="loading.freeze">查询</el-button>
+    <el-button @click="fetchTransactionDetailsData" :loading="loading.freeze">查询</el-button>
 <!--    <el-tabs>-->
 <!--      <el-tab-pane label="冻结明细" name="冻结明细">-->
 <!--        &lt;!&ndash; 添加 el-table 包裹 el-table-column &ndash;&gt;-->
@@ -83,7 +83,7 @@ const freezePagination = reactive({
 
 
 // 修改后的 fetchFreezeData 方法
-async function fetchFreezeData() {
+async function fetchTransactionDetailsData() {
   loading.freeze = true
   try {
     const response = await request.get('/program/freeze', {

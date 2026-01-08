@@ -10,9 +10,11 @@ const router = createRouter({
         { path: '/program', component: () => import('@/components/Program.vue') ,keepAlive:true},
         { path: '/program_freeze', component: () => import('@/components/ProgramFreeze.vue') ,keepAlive:true},
        // { path: '/program', component: () => import('@/components/Program.vue') ,keepAlive:true},
+        { path: '/authorization', component: () => import('@/components/Authorization.vue') ,keepAlive:true},
         { path: '/student', component: () => import('@/components/Student.vue') ,keepAlive:true},
         { path: '/teacher', component: () => import('@/components/Teacher.vue'),keepAlive:true },
         { path: '/voucher', component: () => import('@/components/Voucher.vue') ,keepAlive:true},
+        { path: '/approval_workflow', component: () => import('@/components/ApprovalWorkflow.vue') ,keepAlive:true},
         { path: '/method_of_account_title_summary', component: () => import('@/components/AccountTitleSummary.vue') ,keepAlive:true}
 
     ]
