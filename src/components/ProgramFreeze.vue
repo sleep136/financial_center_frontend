@@ -1,61 +1,71 @@
 <template>
+  <!-- 模板部分保持不变 -->
   <div>
     <shared-program-form
         v-model:department_id="formData.department_id"
         v-model:program_id="formData.program_id"
     />
     <el-button @click="fetchFreezeData" :loading="loading.freeze">查询</el-button>
-<!--    <el-tabs>-->
-<!--      <el-tab-pane label="冻结明细" name="冻结明细">-->
-<!--        &lt;!&ndash; 添加 el-table 包裹 el-table-column &ndash;&gt;-->
+    <el-table
+        :data="freezeTableData"
+        border
+        stripe
+        style="width: 100%; margin-top: 20px;"
+        v-loading="loading.freeze"
+        empty-text="暂无数据"
+    >
+      <el-table-column prop="business_order_number" label="业务编号" width="180"/>
+      <el-table-column prop="program_id" label="项目编号"/>
+      <el-table-column prop="department_id" label="部门编号"/>
+      <el-table-column prop="freeze_number" label="冻结金额"/>
+      <el-table-column prop="unfreeze_number" label="解冻金额"/>
+      <el-table-column prop="abstract" label="摘要"/>
+      <el-table-column prop="operator" label="经办人"/>
+      <el-table-column prop="operate_time" label="操作时间"/>
+      <el-table-column prop="is_review" label="是否复核"/>
+    </el-table>
 
-        <el-table
-            :data="freezeTableData"
-            border
-            stripe
-            style="width: 100%; margin-top: 20px;"
-            v-loading="loading.freeze"
-            empty-text="暂无数据"
-        >
-<!--          <el-table-column prop="hedge_number" label="对冲号" width="180"/>-->
-          <el-table-column prop="business_order_number" label="业务编号" width="180"/>
-          <el-table-column prop="program_id" label="项目编号"/>
-          <el-table-column prop="department_id" label="部门编号"/>
-          <el-table-column prop="freeze_number" label="冻结金额"/>
-          <el-table-column prop="unfreeze_number" label="解冻金额"/>
-          <el-table-column prop="abstract" label="摘要"/>
-          <el-table-column prop="operator" label="经办人"/>
-          <el-table-column prop="operate_time" label="操作时间"/>
-          <el-table-column prop="is_review" label="是否复核"/>
-        </el-table>
-
-        <el-pagination
-            v-if="freezePagination.total > 0"
-            size="small"
-            background
-            :layout="freezePagination.layout"
-            :total="freezePagination.total"
-            :page-size="freezePagination.pageSize"
-            :current-page="freezePagination.currentPage"
-            @current-change="handlePageChange"
-            class="mt-4"
-        />
-<!--      </el-tab-pane>-->
-
-
-<!--    </el-tabs>-->
+    <el-pagination
+        v-if="freezePagination.total > 0"
+        size="small"
+        background
+        :layout="freezePagination.layout"
+        :total="freezePagination.total"
+        :page-size="freezePagination.pageSize"
+        :current-page="freezePagination.currentPage"
+        @current-change="handlePageChange"
+        class="mt-4"
+    />
   </div>
 </template>
 
-<script setup>
-import {ref, reactive, watch, onMounted} from 'vue'
+<script setup lang="ts">
+import {ref, reactive, onMounted} from 'vue'
 import {ElMessage} from 'element-plus'
 import SharedProgramForm from './SharedProgramForm.vue'
 import { nextTick } from 'vue'
-// 导入请求库（根据您实际使用的请求库调整）
-// 假设使用 axios
 import request from '@/utils/requests.ts'
 
+// 定义表格数据项的接口
+interface FreezeRecord {
+  hedge_number?: string;
+  business_order_number: string;
+  program_id: string;
+  department_id: string;
+  freeze_number: number;
+  unfreeze_number: number;
+  abstract: string;
+  operator: string;
+  operate_time: string;
+  is_review: boolean | string;
+}
+
+// 定义API响应接口
+interface ApiResponse<T> {
+  data: T[];
+  total: number;
+  [key: string]: any;
+}
 
 // 表单数据
 const formData = reactive({
@@ -65,13 +75,11 @@ const formData = reactive({
 
 // 加载状态
 const loading = reactive({
-
   freeze: false
 })
 
-// 表格数据
-const freezeTableData = ref([])
-
+// 表格数据 - 明确指定类型
+const freezeTableData = ref<FreezeRecord[]>([])
 
 // 分页配置
 const freezePagination = reactive({
@@ -81,12 +89,12 @@ const freezePagination = reactive({
   layout: 'prev, pager, next, jumper'
 })
 
-
 // 修改后的 fetchFreezeData 方法
 async function fetchFreezeData() {
   loading.freeze = true
   try {
-    const response = await request.get('/program/freeze', {
+    // 明确指定响应的类型
+    const response = await request.get<ApiResponse<FreezeRecord>>('/program/freeze', {
       params: {
         program_id: formData.program_id || '',
         department_id: formData.department_id || '',
@@ -96,14 +104,14 @@ async function fetchFreezeData() {
     })
 
     // 根据常见的API返回格式处理
-    if (response && response.data) {
-      // 如果返回 { data: [], total: 100, ... }
-      freezeTableData.value = response.data
-      freezePagination.total = response.total || 0
-    } else if (Array.isArray(response)) {
+    if (response.data && Array.isArray(response.data.data)) {
+      // 如果返回 { data: [], total: 100, ... } 格式
+      freezeTableData.value = response.data.data
+      freezePagination.total = response.data.total || 0
+    } else if (Array.isArray(response.data)) {
       // 如果直接返回数组
-      freezeTableData.value = response
-      freezePagination.total = response.length
+      freezeTableData.value = response.data
+      freezePagination.total = response.data.length
     } else {
       // 其他情况
       freezeTableData.value = []
@@ -124,7 +132,9 @@ async function fetchFreezeData() {
     loading.freeze = false
   }
 }
-function handlePageChange(page) {
+
+// 修复 handlePageChange 函数的类型
+function handlePageChange(page: number) {
   freezePagination.currentPage = page
   fetchFreezeData()
 }
@@ -134,18 +144,6 @@ onMounted(() => {
   // 如果有默认值，可以在这里触发查询
   // fetchReservationData()
 })
-
-// 如果需要从父组件接收初始值
-// const props = defineProps({
-//   initialProgramId: {
-//     type: String,
-//     default: ''
-//   },
-//   initialDepartmentId: {
-//     type: String,
-//     default: ''
-//   }
-// })
 </script>
 
 <style scoped>

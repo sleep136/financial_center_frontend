@@ -5,7 +5,7 @@
     <el-input
         placeholder="部门编号"
         :model-value="department_id"
-        @update:model-value="(val) => emit('update:department_id', val)"
+        @update:model-value="(val:string) => emit('update:department_id', val)"
     />
   </div>
   <div class="m-4">
@@ -13,12 +13,12 @@
     <el-input
         placeholder="项目编号"
         :model-value="program_id"
-        @update:model-value="(val) => emit('update:program_id', val)"
+        @update:model-value="(val:string) => emit('update:program_id', val)"
     />
   </div>
   <div class="m-4">
     <p>是否过滤已完成业务</p>
-    <el-select :model-value="filter_state" placeholder="请选择"  @update:model-value="(val) => emit('update:filter_state', val)">
+    <el-select :model-value="filter_state" placeholder="请选择"  @update:model-value="(val:number) => emit('update:filter_state', val)">
       <el-option
           v-for="item in filter_states"
           :key="item.value"
@@ -29,11 +29,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // 使用 Composition API
 import {defineProps, defineEmits} from 'vue'
 
-const props = defineProps({
+ defineProps({
   department_id: {
     type: String,
     default: ''

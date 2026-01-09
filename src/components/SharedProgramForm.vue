@@ -5,7 +5,7 @@
     <el-input
         placeholder="部门编号"
         :model-value="department_id"
-        @update:model-value="(val) => emit('update:department_id', val)"
+        @update:model-value="(val: string) => emit('update:department_id', val)"
     />
   </div>
   <div class="m-4">
@@ -13,17 +13,16 @@
     <el-input
         placeholder="项目编号"
         :model-value="program_id"
-        @update:model-value="(val) => emit('update:program_id', val)"
+        @update:model-value="(val: string) => emit('update:program_id', val)"
     />
   </div>
-
 </template>
 
-<script setup>
-// 使用 Composition API
-import {defineProps, defineEmits} from 'vue'
+<script setup lang="ts">
+import { defineEmits } from 'vue'
 
-const props = defineProps({
+// 直接解构 props，或者不使用 props 变量
+defineProps({
   department_id: {
     type: String,
     default: ''
@@ -37,14 +36,11 @@ const props = defineProps({
     default: 1
   }
 })
-const filter_states = [
-  {
-    label: '是', value: 1
-  },
-  {
-    label: '否', value: 2
-  }]
-const emit = defineEmits(['update:department_id', 'update:program_id'])
+
+const emit = defineEmits<{
+  'update:department_id': [value: string]
+  'update:program_id': [value: string]
+}>()
 </script>
 
 <style scoped>

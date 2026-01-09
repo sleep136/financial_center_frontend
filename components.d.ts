@@ -45,8 +45,6 @@ declare module 'vue' {
     SharedProgramForm: typeof import('./src/components/SharedProgramForm.vue')['default']
     Student: typeof import('./src/components/Student.vue')['default']
     Teacher: typeof import('./src/components/Teacher.vue')['default']
-    Test: typeof import('./src/components/test.vue')['default']
-    Voucher: typeof import('./src/components/Voucher.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

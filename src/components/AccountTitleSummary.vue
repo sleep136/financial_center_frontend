@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 const props = {
   multiple: true,
 }
-
+const tableData = ref([])
 const options = [
   {
     value: 'guide',

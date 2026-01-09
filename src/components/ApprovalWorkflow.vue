@@ -37,7 +37,13 @@
         <el-table-column prop="applicants_id" label="申请人工号" />
         <el-table-column prop="applicants_name" label="申请人姓名" />
         <el-table-column prop="apply_date" label="申请日期" />
-        <el-table-column prop="approval_state" label="审批状态" />
+        <el-table-column prop="approval_state" label="审批状态">
+          <template #default="scope">
+            <el-tag :type="getStatusType(scope.row.approval_state)" size="small">
+              {{ getStatusText(scope.row.approval_state) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="abstract" label="摘要" />
       </el-table>
     </div>
@@ -64,7 +70,7 @@
     >
       <div v-loading="loading.detail">
         <!-- 基本信息 -->
-        <div v-if="approvalDetail && approvalDetail.length > 0" class="detail-container">
+        <div v-if="approvalDetail.length > 0" class="detail-container">
           <el-descriptions :column="3" border style="margin-bottom: 20px;">
             <el-descriptions-item label="业务编号">{{ approvalDetail[0].business_id }}</el-descriptions-item>
             <el-descriptions-item label="业务类型">{{ approvalDetail[0].business_type }}</el-descriptions-item>
@@ -81,7 +87,7 @@
           <!-- 单据信息 -->
           <div v-if="approvalDetail[0].abstract" class="abstract-info">
             <el-descriptions title="单据信息" :column="2" border>
-              <template v-for="item in parsedAbstract(approvalDetail[0].abstract)['单据信息']" :key="item">
+              <template v-for="(item, index) in parsedAbstract(approvalDetail[0].abstract)['单据信息']" :key="index">
                 <el-descriptions-item
                     v-for="(value, key) in item"
                     :key="key"
@@ -148,52 +154,63 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import { ElMessage } from 'element-plus'
 import request from '@/utils/requests.ts'
+import { ElMessage } from 'element-plus'
+import type {
+  SearchForm,
+  ApprovalListItem,
+  ApprovalDetailItem,
+  PaginationConfig,
+  LoadingState,
+  AbstractData,
+  TagType,
+  TimelineType,
+  ApprovalStatus
+} from '@/types/workflow'
 
 // 搜索表单
-const searchForm = reactive({
+const searchForm = reactive<SearchForm>({
   work_id: ''
 })
 
 // 加载状态
-const loading = reactive({
+const loading = reactive<LoadingState>({
   list: false,
   detail: false
 })
 
 // 表格数据
-const applyTableData = ref([])
+const applyTableData = ref<ApprovalListItem[]>([])
 
 // 分页配置
-const pagination = reactive({
+const pagination = reactive<PaginationConfig>({
   total: 0,
   pageSize: 10,
   currentPage: 1
 })
 
 // 审批详情相关
-const detailDialogVisible = ref(false)
-const approvalDetail = ref([])
-const currentBusinessId = ref('')
+const detailDialogVisible = ref<boolean>(false)
+const approvalDetail = ref<ApprovalDetailItem[]>([])
+const currentBusinessId = ref<string>('')
 
 // 计算属性：按审批步骤排序
-const sortedApprovalSteps = computed(() => {
-  if (!approvalDetail.value || approvalDetail.value.length === 0) {
+const sortedApprovalSteps = computed<ApprovalDetailItem[]>(() => {
+  if (approvalDetail.value.length === 0) {
     return []
   }
 
-  // 按照 approval_sort 排序，如果没有 approval_sort 则保持原顺序
   return [...approvalDetail.value].sort((a, b) => {
     return (a.approval_sort || 0) - (b.approval_sort || 0)
   })
 })
 
 // 查询审批流列表
-async function searchQuery() {
-  if (!searchForm.work_id.trim()) {
+const searchQuery = async (): Promise<void> => {
+  const workId = searchForm.work_id.trim()
+  if (!workId) {
     ElMessage.warning('请输入工号')
     return
   }
@@ -202,15 +219,16 @@ async function searchQuery() {
   try {
     const response = await request.get('/workflows/teacher', {
       params: {
-        work_id: searchForm.work_id,
+        work_id: workId,
         page: pagination.currentPage,
         page_size: pagination.pageSize
       }
     })
 
-    if (response && response.data) {
-      applyTableData.value = response.data.list || response.data
-      pagination.total = response.data.total || response.total || 0
+    if (response?.data) {
+      const { data } = response
+      applyTableData.value = data.list || data
+      pagination.total = data.total || data.length || 0
     } else if (Array.isArray(response)) {
       applyTableData.value = response
       pagination.total = response.length
@@ -233,7 +251,7 @@ async function searchQuery() {
 }
 
 // 获取审批详情
-async function getApprovalDetail(businessId) {
+const getApprovalDetail = async (businessId: string): Promise<void> => {
   if (!businessId) {
     ElMessage.warning('业务编号无效')
     return
@@ -246,15 +264,13 @@ async function getApprovalDetail(businessId) {
 
   try {
     const response = await request.get('/workflows/program', {
-      params: {
-        business_id: businessId
-      }
+      params: { business_id: businessId }
     })
 
     // 正确处理响应数据
-    if (response && Array.isArray(response)) {
+    if (Array.isArray(response)) {
       approvalDetail.value = response
-    } else if (response && response.data) {
+    } else if (response?.data) {
       approvalDetail.value = Array.isArray(response.data) ? response.data : [response.data]
     } else {
       ElMessage.warning('未找到审批详情')
@@ -272,17 +288,17 @@ async function getApprovalDetail(businessId) {
 }
 
 // 解析 abstract 字段
-function parsedAbstract(abstractStr) {
+const parsedAbstract = (abstractStr: string | object): AbstractData => {
   if (!abstractStr) {
     return { '单据信息': [] }
   }
 
   try {
     if (typeof abstractStr === 'object') {
-      return abstractStr
+      return abstractStr as AbstractData
     }
 
-    const parsed = JSON.parse(abstractStr)
+    const parsed = JSON.parse(abstractStr as string)
     return parsed || { '单据信息': [] }
   } catch (error) {
     console.error('解析 abstract 失败:', error)
@@ -291,7 +307,7 @@ function parsedAbstract(abstractStr) {
 }
 
 // 格式化时间戳
-function formatTimestamp(step) {
+const formatTimestamp = (step: ApprovalDetailItem): string => {
   if (step.approval_date) {
     return formatDateTime(step.approval_date)
   }
@@ -299,23 +315,23 @@ function formatTimestamp(step) {
 }
 
 // 格式化日期时间
-function formatDateTime(dateStr) {
+const formatDateTime = (dateStr: string): string => {
   if (!dateStr) return ''
 
   const trimmed = dateStr.trim()
   if (trimmed.length === 8) {
-    return `${trimmed.substring(0,4)}-${trimmed.substring(4,6)}-${trimmed.substring(6,8)}`
+    return `${trimmed.substring(0, 4)}-${trimmed.substring(4, 6)}-${trimmed.substring(6, 8)}`
   }
   return trimmed
 }
 
 // 格式化日期
-function formatDate(dateStr) {
+const formatDate = (dateStr: string): string => {
   return formatDateTime(dateStr)
 }
 
 // 获取状态类型
-function getStatusType(state) {
+const getStatusType = (state: string | ApprovalStatus): TagType => {
   switch (String(state)) {
     case '0':
       return 'warning'
@@ -333,7 +349,7 @@ function getStatusType(state) {
 }
 
 // 获取状态文本
-function getStatusText(state) {
+const getStatusText = (state: string | ApprovalStatus): string => {
   switch (String(state)) {
     case '0':
       return '待审批'
@@ -351,7 +367,7 @@ function getStatusText(state) {
 }
 
 // 获取时间线类型
-function getTimelineType(state) {
+const getTimelineType = (state: string | ApprovalStatus): TimelineType => {
   switch (String(state)) {
     case '1':
       return 'success'
@@ -367,19 +383,19 @@ function getTimelineType(state) {
 }
 
 // 分页处理
-function handleSizeChange(size) {
+const handleSizeChange = (size: number): void => {
   pagination.pageSize = size
   pagination.currentPage = 1
   searchQuery()
 }
 
-function handlePageChange(page) {
+const handlePageChange = (page: number): void => {
   pagination.currentPage = page
   searchQuery()
 }
 
 // 关闭弹窗处理
-function handleCloseDialog(done) {
+const handleCloseDialog = (done: () => void): void => {
   approvalDetail.value = []
   currentBusinessId.value = ''
   done()
@@ -419,4 +435,5 @@ function handleCloseDialog(done) {
   max-height: 70vh;
   overflow-y: auto;
 }
+
 </style>

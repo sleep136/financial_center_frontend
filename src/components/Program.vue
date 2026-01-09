@@ -17,7 +17,7 @@
           <el-table-column prop="abstract" label="摘要"/>
           <el-table-column prop="operator" label="经办人"/>
           <el-table-column prop="amount" label="金额"/>
-          <el-table-column prop="state" label="状态"  :formatter="statusFormatter"/>
+          <el-table-column prop="state" label="状态" :formatter="statusFormatter"/>
         </el-table>
 
         <el-pagination
@@ -64,21 +64,59 @@
   </div>
 </template>
 
-<script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+<script setup lang="ts">
+import {ref, reactive, watch, onMounted} from 'vue'
+import {ElMessage} from 'element-plus'
+import type {AxiosResponse} from 'axios'
 import SharedForm from './SharedForm.vue'
 
-// 导入请求库（根据您实际使用的请求库调整）
-// 假设使用 axios
+// 导入请求库
 import request from '@/utils/requests.ts' // 请根据您的实际路径调整
+
+// 定义类型
+interface ReservationItem {
+  reservation_number: string
+  business_order_number: string
+  program_id: string
+  department_id: string
+  abstract: string
+  operator: string
+  amount: number
+  state: number
+}
+
+interface LaborItem {
+  labor_number: string
+  business_order_number: string
+  program_id: string
+  department_id: string
+  abstract: string
+  operator: string
+  state: number
+  amount: number
+  type: number
+}
+
+interface PaginationData {
+  total: number
+  pageSize: number
+  currentPage: number
+  layout: string
+}
+
+interface ApiResponse<T> {
+  data: T[]
+  total: number
+  [key: string]: any
+}
 
 const activeTab = ref('报销明细')
 
 // 表单数据
 const formData = reactive({
   program_id: '',
-  department_id: ''
+  department_id: '',
+  filter_state: 1,
 })
 
 // 加载状态
@@ -87,32 +125,30 @@ const loading = reactive({
   labor: false
 })
 
-// 表格数据
-const reservationTableData = ref([])
-const laborTableData = ref([])
+// 表格数据 - 指定具体类型
+const reservationTableData = ref<ReservationItem[]>([])
+const laborTableData = ref<LaborItem[]>([])
 
-// 分页配置
-const reservationPagination = reactive({
+// 分页配置 - 指定具体类型
+const reservationPagination = reactive<PaginationData>({
   total: 0,
   pageSize: 10,
   currentPage: 1,
   layout: 'prev, pager, next, jumper'
 })
 
-const laborPagination = reactive({
+const laborPagination = reactive<PaginationData>({
   total: 0,
   pageSize: 10,
   currentPage: 1,
   layout: 'prev, pager, next, jumper'
 })
-
-
 
 // 报销明细相关方法
 async function fetchReservationData() {
   loading.reservation = true
   try {
-    const response = await request.get('/program/reimbursement', {
+    const response: AxiosResponse<ApiResponse<ReservationItem>> = await request.get('/program/reimbursement', {
       params: {
         program_id: formData.program_id || '',
         department_id: formData.department_id || '',
@@ -120,9 +156,21 @@ async function fetchReservationData() {
       }
     })
     console.info('请求报销明细:', response)
-    // 假设接口返回格式为 { data: [], total: 0, ... }
-    reservationTableData.value = response
-    // reservationPagination.total = response.data.total || 0
+
+    // 根据实际接口返回结构调整
+    // 如果 response.data 是数组
+    if (Array.isArray(response.data)) {
+      reservationTableData.value = response.data
+    }
+    // 如果 response.data 是对象且包含 data 属性
+    else if (response.data && Array.isArray((response.data as any).data)) {
+      reservationTableData.value = (response.data as any).data
+      reservationPagination.total = (response.data as any).total || 0
+    }
+    // 如果 response 本身就是数组
+    else if (Array.isArray(response)) {
+      reservationTableData.value = response
+    }
 
     if (reservationTableData.value.length === 0) {
       ElMessage.info('暂无报销明细数据')
@@ -137,7 +185,7 @@ async function fetchReservationData() {
   }
 }
 
-function handleReservationPageChange(page) {
+function handleReservationPageChange(page: number) {
   reservationPagination.currentPage = page
   fetchReservationData()
 }
@@ -146,7 +194,7 @@ function handleReservationPageChange(page) {
 async function fetchLaborData() {
   loading.labor = true
   try {
-    const response = await request.get('/program/labor_cost', { // 请根据实际接口调整
+    const response: AxiosResponse<ApiResponse<LaborItem>> = await request.get('/program/labor_cost', {
       params: {
         program_id: formData.program_id || '',
         department_id: formData.department_id || '',
@@ -154,9 +202,19 @@ async function fetchLaborData() {
       }
     })
 
-    // 假设接口返回格式为 { data: [], total: 0, ... }
-    laborTableData.value = response
-    laborPagination.total = response.total || 0
+    // 根据实际接口返回结构调整
+    if (Array.isArray(response.data)) {
+      laborTableData.value = response.data
+      laborPagination.total = response.data.length
+    }
+    else if (response.data && Array.isArray((response.data as any).data)) {
+      laborTableData.value = (response.data as any).data
+      laborPagination.total = (response.data as any).total || 0
+    }
+    else if (Array.isArray(response)) {
+      laborTableData.value = response
+      laborPagination.total = response.length
+    }
 
     if (laborTableData.value.length === 0) {
       ElMessage.info('暂无劳务明细数据')
@@ -171,14 +229,19 @@ async function fetchLaborData() {
   }
 }
 
-function handleLaborPageChange(page) {
+function handleLaborPageChange(page: number) {
   laborPagination.currentPage = page
   fetchLaborData()
 }
 
+// 格式化函数
+function statusFormatter(  row: any, column: any, cellValue: number): string {
+  interface StatusMap {
+    [key: number]: string
+  }
 
-function statusFormatter(row, column, cellValue) {
-  const statusMap = {
+  console.log('cellValue',cellValue)
+  const statusMap: StatusMap = {
     1: '进行中',
     2: '已接单',
     3: '已完成',
@@ -188,28 +251,34 @@ function statusFormatter(row, column, cellValue) {
     8: '待审批',
     9: '审批中'
   }
-  return statusMap[cellValue] || cellValue
+  console.log('row',row,'column',column)
+  return statusMap[cellValue] || cellValue.toString()
 }
 
-function laborCostStatusFormatter(row, column, cellValue) {
-  const statusMap = {
-
-    5: '已完成',
-
+function laborCostStatusFormatter(row: any, column: any, cellValue: number): string {
+  interface StatusMap {
+    [key: number]: string
   }
-  return statusMap[cellValue] || cellValue
+  console.log('row',row,'column',column)
+  const statusMap: StatusMap = {
+    5: '已完成',
+  }
+  return statusMap[cellValue] || String(cellValue)
 }
 
-function laborCostTypeFormatter(row, column, cellValue) {
-  const statusMap = {
-
+function laborCostTypeFormatter( row: any, column: any, cellValue: number): string {
+  interface StatusMap {
+    [key: number]: string
+  }
+  console.log('row',row,'column',column)
+  const statusMap: StatusMap = {
     1: '校内劳务',
     2: '校外人员劳务',
     3: '学生劳务',
-
   }
-  return statusMap[cellValue] || cellValue
+  return statusMap[cellValue] || String(cellValue)
 }
+
 // 监听标签页切换
 watch(activeTab, (newTab) => {
   if (newTab === '报销明细' && formData.program_id) {
@@ -224,18 +293,6 @@ onMounted(() => {
   // 如果有默认值，可以在这里触发查询
   // fetchReservationData()
 })
-
-// 如果需要从父组件接收初始值
-// const props = defineProps({
-//   initialProgramId: {
-//     type: String,
-//     default: ''
-//   },
-//   initialDepartmentId: {
-//     type: String,
-//     default: ''
-//   }
-// })
 </script>
 
 <style scoped>
