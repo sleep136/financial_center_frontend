@@ -26,7 +26,7 @@
 
           <el-menu-item index="program" class="menu">报销明细</el-menu-item>
           <el-menu-item index="program_freeze" class="menu">冻结明细</el-menu-item>
-          <el-menu-item index="1-3" class="menu">收支明细</el-menu-item>
+          <el-menu-item index="voucher" class="menu">科研科目汇总</el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="3" class="menu">
