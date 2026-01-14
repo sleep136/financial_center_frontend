@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { ElMessage, ElTable } from 'element-plus'
 import type { AxiosResponse } from 'axios'
 import request from '@/utils/requests.ts'
@@ -27,8 +27,12 @@ const yearOptions = ref([
   { value: '2024', label: '2024年' }
 ])
 
-// 科目字典
-const dict_subjects_code = ref({
+// 科目字典 - 定义具体类型
+interface SubjectDict {
+  [key: string]: string
+}
+
+const dict_subjects_code = ref<SubjectDict>({
   "0101": "设备费",
   "0201": "材料费",
   "0301": "测试化验加工费",
@@ -185,9 +189,9 @@ const subjectOptions = computed(() => {
   }))
 })
 
-// 清空科目选择
-function clearSubject() {
-  formData.subject_code = ''
+// 获取科目名称的辅助函数
+function getSubjectName(code: string): string {
+  return dict_subjects_code.value[code] || code
 }
 
 // 导出数据
@@ -407,8 +411,12 @@ function handleYearChange() {
             >
               <template #default="{ row }">
                 {{ row.subject_code }}
-                <el-tag size="small" type="info" v-if="dict_subjects_code[row.subject_code]">
-                  {{ dict_subjects_code[row.subject_code] }}
+                <el-tag
+                    size="small"
+                    type="info"
+                    v-if="getSubjectName(row.subject_code) !== row.subject_code"
+                >
+                  {{ getSubjectName(row.subject_code) }}
                 </el-tag>
               </template>
             </el-table-column>

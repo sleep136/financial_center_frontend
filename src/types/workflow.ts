@@ -1,6 +1,7 @@
 // types/workflow.ts
 export interface SearchForm {
     work_id: string;
+    state: string;
 }
 
 export interface ApprovalListItem {
