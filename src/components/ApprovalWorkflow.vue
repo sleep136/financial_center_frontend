@@ -13,7 +13,33 @@
           <template #prepend>工号</template>
         </el-input>
       </div>
-      <el-button @click="searchQuery" :loading="loading.list">查询</el-button>
+      <div class="form-item">
+        <el-select
+            v-model="searchForm.state"
+            placeholder="请选择状态"
+            clearable
+            style="width: 150px;"
+        >
+          <el-option label="全部状态" value="-1" />
+          <el-option label="待审批" value="0" />
+          <el-option label="已批准" value="1" />
+          <el-option label="已拒绝" value="2" />
+        </el-select>
+      </div>
+      <el-button
+          type="primary"
+          @click="searchQuery"
+          :loading="loading.list"
+          :icon="Search"
+      >
+        查询
+      </el-button>
+      <el-button
+          @click="resetSearch"
+          :icon="Refresh"
+      >
+        重置
+      </el-button>
     </div>
 
     <!-- 表格区域 -->
@@ -155,7 +181,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { Search, Refresh } from '@element-plus/icons-vue'
 import request from '@/utils/requests.ts'
 import { ElMessage } from 'element-plus'
 import type {
@@ -172,7 +199,8 @@ import type {
 
 // 搜索表单
 const searchForm = reactive<SearchForm>({
-  work_id: ''
+  work_id: '',
+  state: '' // 新增状态筛选
 })
 
 // 加载状态
@@ -217,12 +245,20 @@ const searchQuery = async (): Promise<void> => {
 
   loading.list = true
   try {
+    // 构建请求参数
+    const params: Record<string, any> = {
+      work_id: workId,
+      page: pagination.currentPage,
+      page_size: pagination.pageSize
+    }
+
+    // 如果选择了状态，添加到参数中
+    if (searchForm.state !== undefined && searchForm.state !== '') {
+      params.state = searchForm.state
+    }
+
     const response = await request.get('/workflows/teacher', {
-      params: {
-        work_id: workId,
-        page: pagination.currentPage,
-        page_size: pagination.pageSize
-      }
+      params
     })
 
     if (response?.data) {
@@ -248,6 +284,15 @@ const searchQuery = async (): Promise<void> => {
   } finally {
     loading.list = false
   }
+}
+
+// 重置搜索
+const resetSearch = (): void => {
+  searchForm.work_id = ''
+  searchForm.state = ''
+  pagination.currentPage = 1
+  applyTableData.value = []
+  pagination.total = 0
 }
 
 // 获取审批详情
@@ -357,10 +402,6 @@ const getStatusText = (state: string | ApprovalStatus): string => {
       return '已批准'
     case '2':
       return '已拒绝'
-    case '3':
-      return '进行中'
-    case '4':
-      return '已完成'
     default:
       return '未知状态'
   }
@@ -400,6 +441,12 @@ const handleCloseDialog = (done: () => void): void => {
   currentBusinessId.value = ''
   done()
 }
+
+// 页面加载时可以根据需要自动查询
+onMounted(() => {
+  // 可以在这里添加自动查询逻辑，如果需要的话
+  // searchQuery()
+})
 </script>
 
 <style scoped>
@@ -410,11 +457,13 @@ const handleCloseDialog = (done: () => void): void => {
 .search-area {
   display: flex;
   align-items: center;
+  gap: 10px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .form-item {
-  margin-right: 10px;
+  display: inline-flex;
 }
 
 .pagination-area {
@@ -436,4 +485,20 @@ const handleCloseDialog = (done: () => void): void => {
   overflow-y: auto;
 }
 
+@media (max-width: 768px) {
+  .search-area {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-item {
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .search-area .el-button {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}
 </style>

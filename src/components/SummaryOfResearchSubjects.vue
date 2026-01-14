@@ -3,6 +3,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElTable } from 'element-plus'
 import type { AxiosResponse } from 'axios'
 import request from '@/utils/requests.ts'
+
 interface LaborItem {
   voucher_number: string
   program_id: string
@@ -18,6 +19,13 @@ interface ApiResponse<T> {
   total: number
   [key: string]: any
 }
+
+// 年度选项
+const yearOptions = ref([
+  { value: '2026', label: '2026年' },
+  { value: '2025', label: '2025年' },
+  { value: '2024', label: '2024年' }
+])
 
 // 科目字典
 const dict_subjects_code = ref({
@@ -51,6 +59,7 @@ const loading = reactive({
 
 // 表单数据
 const formData = reactive({
+  year: '2026', // 默认年度
   program_id: '',
   department_id: '',
   subject_code: '',
@@ -88,7 +97,7 @@ const amountBySubject = computed(() => {
 })
 
 // 获取凭证明细数据
-async function fetchVocherData() {
+async function fetchVoucherData() {
   // 表单验证
   if (!formData.program_id) {
     ElMessage.warning('请输入项目编号')
@@ -100,9 +109,15 @@ async function fetchVocherData() {
     return
   }
 
+  if (!formData.year) {
+    ElMessage.warning('请选择年度')
+    return
+  }
+
   loading.labor = true
   try {
     const params: any = {
+      year: formData.year,
       program_id: formData.program_id,
       department_id: formData.department_id,
       filter_state: formData.filter_state
@@ -146,6 +161,7 @@ async function fetchVocherData() {
 
 // 重置表单
 function resetForm() {
+  formData.year = '2026'
   formData.program_id = ''
   formData.department_id = ''
   formData.subject_code = ''
@@ -173,6 +189,42 @@ const subjectOptions = computed(() => {
 function clearSubject() {
   formData.subject_code = ''
 }
+
+// 导出数据
+function exportData() {
+  // 验证必填项
+  if (!formData.program_id || !formData.department_id || !formData.year) {
+    ElMessage.warning('请填写项目编号、部门编号并选择年度')
+    return
+  }
+
+  // 构建查询参数
+  const params = new URLSearchParams()
+  params.append('year', formData.year)
+  params.append('program_id', formData.program_id)
+  params.append('department_id', formData.department_id)
+  params.append('filter_state', String(formData.filter_state))
+
+  if (formData.subject_code) {
+    params.append('subject_code', formData.subject_code)
+  }
+
+  const url = `/program/economic_classification_cost/export?${params.toString()}`
+  window.location.href = url
+}
+
+// 监听年度变化，可以自动查询或重置数据
+function handleYearChange() {
+  // 如果有数据，可以提示用户是否需要重新查询
+  if (laborTableData.value.length > 0) {
+    // 可以选择自动重新查询
+    // fetchVoucherData()
+
+    // 或者选择清空数据
+    laborTableData.value = []
+    laborPagination.total = 0
+  }
+}
 </script>
 
 <template>
@@ -189,8 +241,27 @@ function clearSubject() {
 
           <el-form :model="formData" label-width="120px">
             <el-row :gutter="20">
+              <!-- 年度选择 -->
               <el-col :span="8">
-                <el-form-item label="项目编号" prop="program_id">
+                <el-form-item label="年度" prop="year" required>
+                  <el-select
+                      v-model="formData.year"
+                      placeholder="请选择年度"
+                      style="width: 100%"
+                      @change="handleYearChange"
+                  >
+                    <el-option
+                        v-for="item in yearOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+
+              <el-col :span="8">
+                <el-form-item label="项目编号" prop="program_id" required>
                   <el-input
                       v-model="formData.program_id"
                       placeholder="请输入项目编号"
@@ -200,7 +271,7 @@ function clearSubject() {
               </el-col>
 
               <el-col :span="8">
-                <el-form-item label="部门编号" prop="department_id">
+                <el-form-item label="部门编号" prop="department_id" required>
                   <el-input
                       v-model="formData.department_id"
                       placeholder="请输入部门编号"
@@ -208,7 +279,9 @@ function clearSubject() {
                   />
                 </el-form-item>
               </el-col>
+            </el-row>
 
+            <el-row :gutter="20">
               <el-col :span="8">
                 <el-form-item label="科目" prop="subject_code">
                   <el-select
@@ -231,8 +304,10 @@ function clearSubject() {
             </el-row>
 
             <el-form-item>
-              <el-button type="primary" @click="fetchVocherData" :loading="loading.labor">
-                <el-icon class="el-icon--left"><Search /></el-icon>
+              <el-button type="primary" @click="fetchVoucherData" :loading="loading.labor">
+                <el-icon class="el-icon--left">
+                  <Search />
+                </el-icon>
                 查询
               </el-button>
               <el-button @click="resetForm">重置</el-button>
@@ -244,7 +319,7 @@ function clearSubject() {
         <el-card class="statistics-card" shadow="never" v-if="laborTableData.length > 0">
           <template #header>
             <div class="card-header">
-              <span>统计信息</span>
+              <span>统计信息 ({{ formData.year }}年)</span>
             </div>
           </template>
 
@@ -281,9 +356,11 @@ function clearSubject() {
         <el-card class="table-card" shadow="never" v-if="laborTableData.length > 0">
           <template #header>
             <div class="card-header">
-              <span>凭证明细</span>
-              <el-button type="success" size="small" @click="exportData" v-if="laborTableData.length > 0">
-                <el-icon class="el-icon--left"><Download /></el-icon>
+              <span>凭证明细 ({{ formData.year }}年)</span>
+              <el-button type="success" size="small" @click="exportData">
+                <el-icon class="el-icon--left">
+                  <Download />
+                </el-icon>
                 导出数据
               </el-button>
             </div>
@@ -346,8 +423,6 @@ function clearSubject() {
                 {{ formatAmount(row.amount) }}
               </template>
             </el-table-column>
-
-
           </el-table>
 
           <!-- 分页 -->
@@ -358,8 +433,8 @@ function clearSubject() {
                 :page-sizes="[10, 20, 50, 100]"
                 :total="laborPagination.total"
                 layout="total, sizes, prev, pager, next, jumper"
-                @size-change="fetchVocherData"
-                @current-change="fetchVocherData"
+                @size-change="fetchVoucherData"
+                @current-change="fetchVoucherData"
             />
           </div>
         </el-card>
