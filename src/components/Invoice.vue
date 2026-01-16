@@ -108,7 +108,7 @@ const formatAmount = (amount: number | undefined): string => {
 // 处理查询响应
 const handleQueryResponse = (response: ResponseData<InvoiceItem[]>): void => {
 
-
+  console.log("response",response)
   if (Array.isArray(response)) {
     invoiceTableData.value = response
     if (response.length === 0) {
@@ -142,12 +142,25 @@ const searchByWorkId = async (): Promise<void> => {
 
   loading.value = true
   try {
-    const response = await request.get<ResponseData<InvoiceItem[]>>('/invoice/list', {
+    const result = await request.get<ResponseData<InvoiceItem[]>>('/invoice/list', {
       params: {
         work_id: searchForm.work_id.trim()
       }
     })
-    handleQueryResponse(response)
+
+    // 处理不同的响应结构
+    let responseData: ResponseData<InvoiceItem[]>
+
+    // 检查是否是 Axios 响应对象
+    if (result && typeof result === 'object' && 'data' in result && 'status' in result) {
+      // 是 AxiosResponse
+      responseData = result.data
+    } else {
+      // 直接就是响应数据
+      responseData = result as ResponseData<InvoiceItem[]>
+    }
+
+    handleQueryResponse(responseData)
   } catch (error) {
     handleError(error, '查询失败')
     invoiceTableData.value = []
@@ -175,11 +188,22 @@ const unbindInvoice = async (row: InvoiceItem): Promise<void> => {
   }
 
   try {
-    const response = await request.get('/invoice/unbind', {
+    const result = await request.get('/invoice/unbind', {
       params: {
         invoice_id: row.invoice_id.trim()
       }
     })
+
+    // 处理不同的响应结构
+    let response: any
+
+    if (result && typeof result === 'object' && 'data' in result && 'status' in result) {
+      // 是 AxiosResponse
+      response = result.data
+    } else {
+      // 直接就是响应数据
+      response = result
+    }
 
     if (handleUnbindResponse(response)) {
       await searchByWorkId()
