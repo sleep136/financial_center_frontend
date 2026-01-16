@@ -12,6 +12,7 @@ const router = createRouter({
         // { path: '/program', component: () => import('@/components/Program.vue') ,keepAlive:true},
         {path: '/authorization', component: () => import('@/components/Authorization.vue'), meta: {keepAlive: true}},
         {path: '/student', component: () => import('@/components/Student.vue'), meta: {keepAlive: true}},
+        {path: '/invoice', component: () => import('@/components/Invoice.vue'), meta: {keepAlive: true}},
         {path: '/teacher', component: () => import('@/components/Teacher.vue'), meta: {keepAlive: true}},
         {path: '/voucher', component: () => import('@/components/SummaryOfResearchSubjects.vue'), meta: {keepAlive: true}},
         {

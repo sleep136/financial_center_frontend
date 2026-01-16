@@ -38,6 +38,7 @@ declare module 'vue' {
     ElTimeline: typeof import('element-plus/es')['ElTimeline']
     ElTimelineItem: typeof import('element-plus/es')['ElTimelineItem']
     Index: typeof import('./src/components/Index.vue')['default']
+    Invoice: typeof import('./src/components/Invoice.vue')['default']
     Login: typeof import('./src/components/Login.vue')['default']
     Program: typeof import('./src/components/Program.vue')['default']
     ProgramFreeze: typeof import('./src/components/ProgramFreeze.vue')['default']

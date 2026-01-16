@@ -3,9 +3,9 @@ import axios from 'axios'
 import {ElMessage} from 'element-plus'
 
 // 设置后端地址
-// const baseURL = 'http://172.31.22.3:8000'
+const baseURL = 'http://172.31.22.3:8000'
 
-const baseURL= 'http://localhost:8000'
+// const baseURL= 'http://localhost:8000'
 /**
  * @description 创建axios实例
  */

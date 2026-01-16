@@ -47,6 +47,8 @@
             <span>教师经费查询</span>
           </template>
           <el-menu-item index="authorization" class="menu">项目授权情况</el-menu-item>
+          <el-menu-item index="invoice" class="menu">发票绑定情况</el-menu-item>
+
 <!--          <el-menu-item index="3-2" class="menu">借票申请列表</el-menu-item>-->
         </el-sub-menu>
 <!--        <el-sub-menu index="5" class="menu">-->
