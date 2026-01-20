@@ -1,11 +1,11 @@
-import {useUserStore} from '../stores'
+import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
 import {ElMessage} from 'element-plus'
 
 // 设置后端地址
-const baseURL = 'http://172.31.22.3:8000'
+//const baseURL = 'http://172.31.22.3:8000'
 
-// const baseURL= 'http://localhost:8000'
+const baseURL= 'http://localhost:8000'
 /**
  * @description 创建axios实例
  */
@@ -20,7 +20,7 @@ const instance = axios.create({
  */
 instance.interceptors.request.use(
     (config) => {
-        const userStore = useUserStore()
+        const userStore = useAuthStore()
         // 添加token到http请求头的Authorization
         if (userStore.token) {
             config.headers.Authorization = `Bearer ${userStore.token}`  // 通常有 Bearer 前缀

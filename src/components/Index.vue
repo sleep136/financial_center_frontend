@@ -1,60 +1,50 @@
+<!-- Index.vue -->
 <template>
+  <div class="container">
+    <!-- 原有模板代码 -->
+    <div class="bar" v-if="$route.path != '/login' && isAuthenticated">
+      <!-- 菜单代码 -->
+    </div>
 
-
+    <div class="content" :class="{ 'full-width': !isAuthenticated || $route.path === '/login' }">
+      <div class="main">
+        <router-view></router-view>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import {ref, defineExpose} from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-import {useRouter} from 'vue-router'
-
-import {useRouterStore} from "@/stores";
-
-const router = useRouter()
-const routerStore = useRouterStore()
+const route = useRoute()
+const authStore = useAuthStore()
 const isCollapse = ref(false)
 
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const currentActive = computed(() => route.path)
 
-defineExpose({
-  isCollapse,
-})
+// 检查权限
+const canAccess = (paths: string | string[]): boolean => {
+  if (!authStore.isAuthenticated) return false
 
-// const addTab = (routePath)=>{
+  if (Array.isArray(paths)) {
+    return paths.some(path => authStore.canAccessPage(path))
+  }
 
+  return authStore.canAccessPage(paths)
+}
 
+// 路由变化监听
 window.addEventListener('popstate', () => {
-  if (router.currentRoute.value.name) {
-    routerStore.setCurrentSelected(router.currentRoute.value.toString())
+  if (route.name) {
+    console.log('路由变化:', route.path)
   }
 })
 </script>
 
 <style scoped>
-.el-menu-vertical, .el-menu-vertical:not(.el-menu--collapse) {
-  height: 100vh;
-}
-
-.titleName {
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.menu {
-  font-size: 14px;
-
-}
-.container{
-  display: flex;
-  justify-content: space-between;
-}
-.bar {
-  width: 200px;
-
-}
-.content {
-  width: calc(100vw - 200px);
-}
-.main{
-  padding: 20px;
-}
+/* 样式代码 */
 </style>
