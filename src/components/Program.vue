@@ -261,6 +261,7 @@ function laborCostStatusFormatter(row: any, column: any, cellValue: number): str
   }
   console.log('row',row,'column',column)
   const statusMap: StatusMap = {
+    3: '已提交',
     5: '已完成',
   }
   return statusMap[cellValue] || String(cellValue)

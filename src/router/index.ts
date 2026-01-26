@@ -1,6 +1,6 @@
 // router/index.ts - 合并后的版本
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+
 
 const routes = [
     {

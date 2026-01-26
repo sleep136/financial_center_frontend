@@ -9,6 +9,12 @@ interface UserInfo {
     groups: number[]
 }
 
+// 登录响应接口
+interface LoginResponse {
+    access_token: string
+    user: UserInfo
+}
+
 export const useAuthStore = defineStore('auth', () => {
     const token = ref<string>('')
     const userInfo = ref<UserInfo | null>(null)
@@ -20,7 +26,13 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (savedToken && savedUserInfo) {
             token.value = savedToken
-            userInfo.value = JSON.parse(savedUserInfo)
+            try {
+                userInfo.value = JSON.parse(savedUserInfo)
+            } catch (e) {
+                console.error('解析用户信息失败:', e)
+                userInfo.value = null
+                localStorage.removeItem('userInfo')
+            }
         }
     }
 
@@ -55,7 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         // 会计权限配置
         const accountantAllowedPaths = [
-            '/program',
+            '/indicator',
             // '/program_freeze',
             // '/student',
             // '/authorization',
@@ -72,17 +84,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 登录
-    const login = async (username: string, password: string) => {
+    const login = async (username: string, password: string): Promise<LoginResponse> => {
         try {
             const response = await loginApi({ username, password })
 
-            token.value = response.access_token
-            userInfo.value = response.user
+            // 访问 response.data 获取实际数据
+            const data: LoginResponse = response.data
+
+            token.value = data.access_token
+            userInfo.value = data.user
 
             localStorage.setItem('token', token.value)
             localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
 
-            return response
+            return data
         } catch (error) {
             console.error('登录失败:', error)
             throw error
@@ -90,12 +105,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 获取用户信息
-    const fetchUserInfo = async () => {
+    const fetchUserInfo = async (): Promise<UserInfo> => {
         try {
             const response = await getUserInfoApi()
-            userInfo.value = response
+
+            // 访问 response.data 获取实际数据
+            const data: UserInfo = response.data
+
+            userInfo.value = data
             localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
-            return response
+
+            return data
         } catch (error) {
             console.error('获取用户信息失败:', error)
             throw error

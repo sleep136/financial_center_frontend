@@ -141,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Management } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'

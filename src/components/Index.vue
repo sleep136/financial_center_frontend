@@ -15,27 +15,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import {  computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const authStore = useAuthStore()
-const isCollapse = ref(false)
+
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
-const currentActive = computed(() => route.path)
 
-// 检查权限
-const canAccess = (paths: string | string[]): boolean => {
-  if (!authStore.isAuthenticated) return false
 
-  if (Array.isArray(paths)) {
-    return paths.some(path => authStore.canAccessPage(path))
-  }
-
-  return authStore.canAccessPage(paths)
-}
 
 // 路由变化监听
 window.addEventListener('popstate', () => {

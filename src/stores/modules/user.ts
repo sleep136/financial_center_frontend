@@ -12,5 +12,5 @@ export const useUserStore = defineStore(
     },
     {
         persist: true // 持久化
-    }
+    } as any // 添加类型断言
 )
