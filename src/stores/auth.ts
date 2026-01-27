@@ -1,7 +1,6 @@
-// stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { loginApi, getUserInfoApi } from '@/api/auth'
+import { loginApi, getUserInfoApi, type ApiLoginResponse } from '@/api/auth'
 
 interface UserInfo {
     id: number
@@ -9,11 +8,15 @@ interface UserInfo {
     groups: number[]
 }
 
-// 登录响应接口
-interface LoginResponse {
-    access_token: string
-    user: UserInfo
+// 使用 ApiLoginResponse 作为基础，但让 token_type 变为必填
+interface LoginResponse extends Omit<ApiLoginResponse, 'token_type'> {
+    token_type: string
 }
+
+// 或者直接使用 ApiLoginResponse，但处理可能未定义的 token_type
+// interface LoginResponse extends ApiLoginResponse {
+//     token_type: string  // 覆盖为必填
+// }
 
 export const useAuthStore = defineStore('auth', () => {
     const token = ref<string>('')
@@ -83,34 +86,36 @@ export const useAuthStore = defineStore('auth', () => {
         return false
     }
 
-    // 登录
     const login = async (username: string, password: string): Promise<LoginResponse> => {
         try {
-            const response = await loginApi({ username, password })
+            const apiResponse = await loginApi({ username, password })
 
-            // 访问 response.data 获取实际数据
-            const data: LoginResponse = response.data
+            // 转换 ApiLoginResponse 为 LoginResponse
+            const response: LoginResponse = {
+                ...apiResponse,
+                token_type: apiResponse.token_type || 'bearer'  // 提供默认值
+            }
 
-            token.value = data.access_token
-            userInfo.value = data.user
+            console.log('登录返回信息:', response)
+
+            token.value = response.access_token
+            userInfo.value = response.user
 
             localStorage.setItem('token', token.value)
             localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
 
-            return data
+            return response
         } catch (error) {
             console.error('登录失败:', error)
             throw error
         }
     }
 
-    // 获取用户信息
+    // 获取用户信息 - 也需要修正
     const fetchUserInfo = async (): Promise<UserInfo> => {
         try {
-            const response = await getUserInfoApi()
-
-            // 访问 response.data 获取实际数据
-            const data: UserInfo = response.data
+            // getUserInfoApi 应该返回 UserInfo，不是 response.data
+            const data = await getUserInfoApi()
 
             userInfo.value = data
             localStorage.setItem('userInfo', JSON.stringify(userInfo.value))

@@ -142,54 +142,38 @@ const searchIndicators = async (page: number = 1): Promise<void> => {
 
   loading.value = true
   try {
-    const response = await request.get<PaginationResponse>('/indicator/list', {
+    // 注意：使用类型断言告诉 TypeScript 返回的是 PaginationResponse
+    const response = await request.get('/indicator/list', {
       params: {
         budget_year: searchForm.budget_year,
         keyword: searchForm.keyword.trim(),
         page: page,
         page_size: pagination.value.page_size
       }
-    })
+    }) as PaginationResponse  // 这里进行类型断言
 
-    // 更新分页数据和表格数据
-    if (response && typeof response === 'object') {
-      const data = response.data // 直接使用 response.data
+    console.log("响应数据:", response)
 
-      // 更新表格数据
-      indicatorTableData.value = data.data || []
+    // 更新表格数据
+    indicatorTableData.value = response.data || []
 
-      // 更新分页信息
-      pagination.value = {
-        total: data.total || 0,
-        total_pages: data.total_pages || 0,
-        current_page: data.current_page || 1,
-        page_size: data.page_size || pagination.value.page_size,
-        has_next: data.has_next || false,
-        has_prev: data.has_prev || false,
-        next_page: data.next_page,
-        prev_page: data.prev_page
-      }
+    // 更新分页信息
+    pagination.value = {
+      total: response.total || 0,
+      total_pages: response.total_pages || 0,
+      current_page: response.current_page || 1,
+      page_size: response.page_size || pagination.value.page_size,
+      has_next: response.has_next || false,
+      has_prev: response.has_prev || false,
+      next_page: response.next_page,
+      prev_page: response.prev_page
+    }
 
-      // 显示查询结果信息
-      if (indicatorTableData.value.length === 0) {
-        ElMessage.info('未查询到相关数据')
-      } else {
-        ElMessage.success(`查询到 ${data.total} 条记录，当前第 ${data.current_page}/${data.total_pages} 页`)
-      }
-    } else {
-      // 处理非标准响应格式
-      indicatorTableData.value = []
-      pagination.value = {
-        total: 0,
-        total_pages: 0,
-        current_page: 1,
-        page_size: pagination.value.page_size,
-        has_next: false,
-        has_prev: false,
-        next_page: null,
-        prev_page: null
-      }
+    // 显示查询结果信息
+    if (indicatorTableData.value.length === 0) {
       ElMessage.info('未查询到相关数据')
+    } else {
+      ElMessage.success(`查询到 ${response.total} 条记录，当前第 ${response.current_page}/${response.total_pages} 页`)
     }
   } catch (error) {
     handleError(error, '查询失败')
@@ -208,7 +192,6 @@ const searchIndicators = async (page: number = 1): Promise<void> => {
     loading.value = false
   }
 }
-
 // 处理分页变化
 const handlePageChange = (page: number) => {
   pagination.value.current_page = page
