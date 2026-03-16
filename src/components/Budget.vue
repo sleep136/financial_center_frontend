@@ -29,6 +29,21 @@ const yearOptions = ref([
   {value: '2024', label: '2024年'}
 ])
 
+// 年度选项
+const monthOptions = ref([
+  {value: '1', label: '1月'},
+  {value: '2', label: '2月'},
+  {value: '3', label: '3月'},
+  {value: '4', label: '4月'},
+  {value: '5', label: '5月'},
+  {value: '6', label: '6月'},
+  {value: '7', label: '7月'},
+  {value: '8', label: '8月'},
+  {value: '9', label: '9月'},
+  {value: '10', label: '10月'},
+  {value: '11', label: '11月'},
+  {value: '12', label: '12月'}
+])
 
 // 响应式数据
 const activeTab = ref('预算下发明细')
@@ -39,6 +54,8 @@ const loading = reactive({
 // 表单数据
 const formData = reactive({
   year: '2026', // 默认年度
+  start_month: '1', // 默认起始月
+  end_month: '13', // 默认结束月
   program_id: '',
   department_id: '',
   subject_code: '',
@@ -87,6 +104,8 @@ async function fetchVoucherData() {
       year: formData.year,
       program_id: formData.program_id,
       department_id: formData.department_id,
+      start_month: formData.start_month,
+      end_month: formData.end_month,
       filter_state: formData.filter_state
     }
 
@@ -187,7 +206,38 @@ function handleYearChange() {
                   </el-select>
                 </el-form-item>
               </el-col>
-
+              <el-col :span="8">
+                <el-form-item label="起始月" prop="start_month" required>
+                  <el-select
+                      v-model="formData.start_month"
+                      placeholder="请选择月份"
+                      style="width: 100%"
+                  >
+                    <el-option
+                        v-for="item in monthOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item label="结束月" prop="end_month" required>
+                  <el-select
+                      v-model="formData.end_month"
+                      placeholder="请选择月份"
+                      style="width: 100%"
+                  >
+                    <el-option
+                        v-for="item in monthOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
               <el-col :span="8">
                 <el-form-item label="项目编号" prop="program_id" required>
                   <el-input
