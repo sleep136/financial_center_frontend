@@ -44,6 +44,12 @@
           >
             科研科目汇总
           </el-menu-item>
+          <el-menu-item
+              v-if="canAccess('/budget')"
+              index="/budget"
+          >
+            预算下发查询
+          </el-menu-item>
         </el-sub-menu>
 
         <!-- 学生费用查询模块 -->

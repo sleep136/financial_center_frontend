@@ -363,7 +363,9 @@ const downloadTemplate = async (): Promise<void> => {
       responseType: 'blob'
     })
 
-    const blob = new Blob([response.data])
+    // 使用类型断言绕过 TypeScript 检查
+    const blob = new Blob([response as unknown as BlobPart])
+
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url

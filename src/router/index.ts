@@ -80,7 +80,14 @@ const routes = [
         name: 'MethodOfAccountTitleSummary',
         component: () => import('@/components/AccountTitleSummary.vue'),
         meta: { keepAlive: true, requiresAuth: true }
+    },
+    {
+        path: '/budget',
+        name: 'Budget',
+        component: () => import('@/components/Budget.vue'),
+        meta: { keepAlive: true, requiresAuth: true }
     }
+
 ]
 
 const router = createRouter({
