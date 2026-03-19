@@ -9,11 +9,14 @@ interface AuthorizationRecord {
   program_name: string
   program_id: string
   department_id: string
+  authorization_type: string
   authorized_amount: number
   cancelled_amount: number
   authorized_person: string
   operator: string
   operate_time: string
+  start_time: string
+  end_time: string
   is_cancelled: boolean
   abstract: string
 }
@@ -188,6 +191,7 @@ const resetSearch = () => {
         <el-table-column prop="program_name" label="项目名称" width="180"/>
         <el-table-column prop="program_id" label="项目编号" width="120"/>
         <el-table-column prop="department_id" label="部门编号" width="120"/>
+        <el-table-column prop="authorization_type" label="授权类型" width="80"/>
         <el-table-column prop="authorized_amount" label="授权金额" width="120">
           <template #default="{ row }">
             ¥{{ row.authorized_amount.toFixed(2) }}
@@ -200,16 +204,14 @@ const resetSearch = () => {
         </el-table-column>
         <el-table-column prop="authorized_person" label="被授权人" width="120"/>
         <el-table-column prop="operator" label="授权人" width="120"/>
-        <el-table-column prop="operate_time" label="操作时间" width="180">
-          <template #default="{ row }">
-            {{ new Date(row.operate_time).toLocaleString() }}
-          </template>
-        </el-table-column>
+        <el-table-column prop="start_time" label="授权开始时间" width="120" />
+        <el-table-column prop="end_time" label="授权结束时间" width="80" />
+        <el-table-column prop="operate_time" label="操作时间" width="80"/>
+
         <el-table-column prop="is_cancelled" label="操作类型" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.is_cancelled === 0 ? 'info' : row.is_cancelled === 1 ? 'success' : 'warning'">
-              {{ row.is_cancelled === 0 ? '取消授权' : row.is_cancelled === 1 ? '已取消' : '授权' }}
-
+            <el-tag :type="row.is_cancelled === '1' ? 'info' : row.is_cancelled === '0' ? 'success' : 'warning'">
+              {{ row.is_cancelled === '0' ? '取消授权' : row.is_cancelled === '1' ? '授权' : '未知' }}
 
             </el-tag>
           </template>
