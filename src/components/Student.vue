@@ -21,6 +21,15 @@ interface StatusInfo {
   text: string
 }
 
+// 学生基础信息类型
+interface StudentInfo {
+  student_id: string
+  name: string
+  class_name: string
+  department_name: string
+  bank_card: string
+}
+
 // 搜索表单
 const searchForm = reactive<SearchForm>({
   student_id: ''
@@ -30,6 +39,9 @@ const searchForm = reactive<SearchForm>({
 const expenseTableData = ref<ExpenseRecord[]>([])
 const loading = ref(false)
 const isFirstLoad = ref(true)
+
+// 学生基础信息
+const studentInfo = ref<StudentInfo | null>(null)
 
 // 分页配置
 const pagination = reactive<PaginationConfig>({
@@ -123,6 +135,22 @@ const processResponseData = (data: any): ExpenseRecord[] => {
   return []
 }
 
+// 处理学生基础信息
+const processStudentInfo = (info: any): void => {
+  if (!info) {
+    studentInfo.value = null
+    return
+  }
+
+  studentInfo.value = {
+    student_id: info['学号'] || '',
+    name: info['姓名'] || '',
+    class_name: info['班级名称'] || '',
+    department_name: (info['部门名称'] || '').trim(),
+    bank_card: info['银行卡号'] || ''
+  }
+}
+
 // 搜索查询
 const searchQuery = async (): Promise<void> => {
   const studentId = searchForm.student_id.trim()
@@ -160,7 +188,13 @@ const handleResponse = async (response: any): Promise<void> => {
       throw new Error('响应数据为空')
     }
 
-    const processedData = processResponseData(response.data || response)
+    const data = response.data || response
+
+    // 处理学生基础信息
+    processStudentInfo(data.info)
+
+    // 处理表格数据
+    const processedData = processResponseData(data)
     expenseTableData.value = processedData
     pagination.total = processedData.length
 
@@ -172,6 +206,7 @@ const handleResponse = async (response: any): Promise<void> => {
     ElMessage.error('数据处理失败')
     expenseTableData.value = []
     pagination.total = 0
+    studentInfo.value = null
   }
 }
 
@@ -210,6 +245,7 @@ const handleError = (error: any): void => {
   ElMessage.error(errorMessage)
   expenseTableData.value = []
   pagination.total = 0
+  studentInfo.value = null
 }
 
 // 分页变化处理
@@ -232,6 +268,7 @@ const resetSearch = (): void => {
   pagination.currentPage = 1
   pagination.total = 0
   isFirstLoad.value = true
+  studentInfo.value = null
 }
 
 // 排序处理
@@ -314,6 +351,28 @@ onMounted(() => {
           <el-button @click="resetSearch" :disabled="loading">
             重置
           </el-button>
+        </div>
+      </div>
+    </el-card>
+
+    <!-- 学生基础信息 -->
+    <el-card v-if="studentInfo" class="info-card" shadow="never">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">姓名：</span>
+          <span class="info-value">{{ studentInfo.name }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">班级：</span>
+          <span class="info-value">{{ studentInfo.class_name }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">部门：</span>
+          <span class="info-value">{{ studentInfo.department_name }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">银行卡：</span>
+          <span class="info-value">{{ studentInfo.bank_card }}</span>
         </div>
       </div>
     </el-card>
@@ -502,6 +561,40 @@ onMounted(() => {
   gap: 8px;
 }
 
+/* 学生基础信息卡片样式 */
+.info-card {
+  margin-bottom: 20px;
+  animation: slideDown 0.3s ease;
+
+  :deep(.el-card__body) {
+    padding: 16px 20px;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #333;
+  min-width: 50px;
+  margin-right: 8px;
+}
+
+.info-value {
+  color: #666;
+  flex: 1;
+}
+
 .stats-card {
   margin-bottom: 20px;
   animation: slideDown 0.3s ease;
@@ -651,6 +744,10 @@ onMounted(() => {
   .form-actions {
     width: 100%;
     justify-content: center;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
   }
 
   .stats-grid {
