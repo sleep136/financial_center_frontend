@@ -130,6 +130,18 @@
           <el-menu-item index="/method_of_account_title_summary">汇总计算</el-menu-item>
         </el-sub-menu>
 
+        <!-- 健康检查查询模块 -->
+        <el-sub-menu
+            v-if="canAccess('/healthy')"
+            index="approval"
+        >
+          <template #title>
+            <el-icon><Management/></el-icon>
+            <span>健康检查查询</span>
+          </template>
+          <el-menu-item index="/healthy">健康检查</el-menu-item>
+        </el-sub-menu>
+
         <!-- 管理配置模块 - 只对管理员显示 -->
         <el-sub-menu
             v-if="isAdmin"

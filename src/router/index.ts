@@ -86,7 +86,14 @@ const routes = [
         name: 'Budget',
         component: () => import('@/components/Budget.vue'),
         meta: { keepAlive: true, requiresAuth: true }
+    },
+    {
+        path: '/healthy',
+        name: 'Healthy',
+        component: () => import('@/components/Healthy.vue'),
+        meta: { keepAlive: true, requiresAuth: true }
     }
+
 
 ]
 
