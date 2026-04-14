@@ -104,6 +104,12 @@
           >
             报销记录
           </el-menu-item>
+          <el-menu-item
+              v-if="canAccess('/recipe')"
+              index="/recipe"
+          >
+            借票查询
+          </el-menu-item>
         </el-sub-menu>
 
         <!-- 审批流查询模块 -->

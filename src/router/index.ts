@@ -92,6 +92,12 @@ const routes = [
         name: 'Healthy',
         component: () => import('@/components/Healthy.vue'),
         meta: { keepAlive: true, requiresAuth: true }
+    },
+    {
+        path: '/recipe',
+        name: 'Recipe',
+        component: () => import('@/components/Recipe.vue'),
+        meta: { keepAlive: true, requiresAuth: true }
     }
 
 

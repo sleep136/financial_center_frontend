@@ -33,7 +33,7 @@ const getHealthList = async () => {
     })
 
     // 5. 安全赋值 + 类型保证
-    const arr = Object.values(data?.services || {})
+    const arr = Object.values(data || {})
     serviceList.value = arr as ServiceInfo[]
 
     ElMessage.success('服务状态加载成功')
