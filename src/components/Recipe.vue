@@ -6,13 +6,13 @@
         <div class="search-box" style="margin-bottom: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
           <el-input
               v-model="searchForm.user_name"
-              placeholder="经办人名称"
+              placeholder="申请人名称"
               style="width: 180px"
               clearable
           />
           <el-input
               v-model="searchForm.work_id"
-              placeholder="经办人工号"
+              placeholder="申请人工号"
               style="width: 180px"
               clearable
           />
