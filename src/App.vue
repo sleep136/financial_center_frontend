@@ -78,7 +78,7 @@
 
         <!-- 教师经费查询模块 -->
         <el-sub-menu
-            v-if="canAccess(['/authorization', '/invoice'])"
+            v-if="canAccess(['/authorization', '/invoice','/teacher','/recipe'])"
             index="teacher"
         >
           <template #title>
