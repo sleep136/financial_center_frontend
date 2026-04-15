@@ -37,8 +37,8 @@
             border
         >
           <el-table-column prop="serial_num" label="流水号" width="180" />
-          <el-table-column prop="operator_id" label="经办人工号" width="180" />
-          <el-table-column prop="operator_name" label="经办人姓名" />
+          <el-table-column prop="operator_id" label="项目负责人工号" width="180" />
+          <el-table-column prop="operator_name" label="项目负责人姓名" />
           <el-table-column prop="department_id" label="部门编号" />
           <el-table-column prop="company_name" label="对方单位名称" />
           <el-table-column prop="contract_num" label="合同编号" />
