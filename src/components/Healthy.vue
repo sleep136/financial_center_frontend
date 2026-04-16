@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElTable, ElTableColumn, ElTag } from 'element-plus'
 import request from '@/utils/requests.ts'
 
-// 1. 定义后端返回的数据结构（TS 核心）
 interface ServiceInfo {
   healthy: string
   response_time_ms: string
@@ -13,32 +12,29 @@ interface ServiceInfo {
   name: string
 }
 
-// 2. 定义整个接口返回类型
 interface HealthResponse {
   services: Record<string, ServiceInfo>
 }
 
-// 3. 声明响应式数据（类型明确）
 const serviceList = ref<ServiceInfo[]>([])
 const loading = ref(false)
 
-// 获取健康检查数据
 const getHealthList = async () => {
   loading.value = true
   try {
-    // 4. 给接口返回值指定类型（核心修复）
-    const data = await request<HealthResponse>({
+    const res = await request<HealthResponse>({
       url: '/health/all',
       method: 'get'
     })
 
-    // 5. 安全赋值 + 类型保证
-    const arr = Object.values(data || {})
-    serviceList.value = arr as ServiceInfo[]
+    // ✅ 终极正确写法（适配 99% 的 axios 封装）
+    const result = res.data || res
+    const arr = Object.values(result.services || {})
+    serviceList.value = arr
 
-    ElMessage.success('服务状态加载成功')
+    console.log('最终表格数据：', arr) // 看这里！
   } catch (err) {
-    ElMessage.error('服务状态加载失败')
+    ElMessage.error('加载失败')
     console.error(err)
   } finally {
     loading.value = false
@@ -51,8 +47,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="health-container" style="padding: 20px">
-    <el-table :data="serviceList" :loading="loading" border style="width: 100%">
+  <div style="padding: 20px">
+    <el-table :data="serviceList" :loading="loading" border width="100%">
       <el-table-column label="服务名称" prop="name" align="center" />
       <el-table-column label="健康状态" align="center">
         <template #default="scope">
@@ -67,6 +63,3 @@ onMounted(() => {
     </el-table>
   </div>
 </template>
-
-<style scoped>
-</style>
