@@ -249,7 +249,8 @@ function statusFormatter(  row: any, column: any, cellValue: number): string {
     5: '待投递',
     7: '审批驳回',
     8: '待审批',
-    9: '审批中'
+    9: '审批中',
+    20: '挂起'
   }
   console.log('row',row,'column',column)
   return statusMap[cellValue] || cellValue.toString()
@@ -261,7 +262,9 @@ function laborCostStatusFormatter(row: any, column: any, cellValue: number): str
   }
   console.log('row',row,'column',column)
   const statusMap: StatusMap = {
+    1: '保存未提交',
     3: '已提交',
+    4: '已退单',
     5: '已完成',
   }
   return statusMap[cellValue] || String(cellValue)
