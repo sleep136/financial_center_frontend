@@ -102,10 +102,11 @@
     <!-- 供应商 & 学院 -->
     <div style="display:flex;gap:20px; margin-top:20px;">
       <el-card shadow="hover" style="width:49%" v-loading="supplierLoading">
-        <div class="table-title">年度供应商报销TOP10</div>
+        <div class="table-title">年度供应商报销TOP50</div>
         <el-table :data="supplierList" border>
           <el-table-column prop="supplier" label="供应商" />
           <el-table-column prop="amount" label="总金额" />
+          <el-table-column prop="count" label="发票数量" align="center" />
           <el-table-column label="操作" width="100">
             <template #default="scope">
               <el-button type="text" @click="openSupplierDetail(scope.row.supplier)">查看明细</el-button>
@@ -131,6 +132,9 @@
 
     <!-- 发票明细弹窗 -->
     <el-dialog v-model="detailVisible" :title="curMonthName + '发票明细'" width="95%" append-to-body>
+      <div style="margin-bottom:10px; text-align:right">
+        <el-button type="success" @click="exportDetailExcel">导出 Excel</el-button>
+      </div>
       <el-table :data="detailItems" border v-loading="detailLoading" height="500">
         <el-table-column prop="FKDWMC" label="付款单位名称" min-width="100" show-overflow-tooltip />
         <el-table-column prop="DZFPH" label="电子发票号" min-width="140" />
@@ -153,6 +157,7 @@ import { onMounted, ref, nextTick, onBeforeUnmount, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/requests.ts'
 import * as echarts from 'echarts'
+import * as XLSX from 'xlsx'
 
 interface TotalData { total_amount: number; total_count: number }
 interface MonthData { amount: number; count: number }
@@ -224,6 +229,23 @@ const renderMonthPie = () => {
   })
 }
 
+// 工具函数：按供应商累计金额排序明细
+const sortItemsBySupplierAmount = (items: any[]) => {
+  // 1. 按供应商汇总金额
+  const supplierMap: Record<string, number> = {}
+  items.forEach(item => {
+    const supplier = item.KPDWMC || '未知单位'
+    const amt = parseFloat(item.ZJE) || 0
+    supplierMap[supplier] = (supplierMap[supplier] || 0) + amt
+  })
+  // 2. 排序
+  return [...items].sort((a, b) => {
+    const amtA = supplierMap[a.KPDWMC || '未知单位'] || 0
+    const amtB = supplierMap[b.KPDWMC || '未知单位'] || 0
+    return amtB - amtA
+  })
+}
+
 // 学院柱状图
 const renderCollegeBar = () => {
   const list = monthTopCollegeList.value || []
@@ -286,6 +308,33 @@ const renderAllCharts = () => {
     renderCollegeBar()
     renderUserBar()
   })
+}
+
+// 导出明细 Excel
+const exportDetailExcel = () => {
+  if (!detailItems.value.length) {
+    ElMessage.warning('无数据可导出')
+    return
+  }
+  const exportData = detailItems.value.map(item => ({
+    '付款单位名称': item.FKDWMC,
+    '电子发票号': item.DZFPH,
+    '预约单号': item.YYDH,
+    '总金额': item.ZJE,
+    '发票税额': item.SE,
+    '开票日期': item.KPRQ,
+    '开票单位': item.KPDWMC,
+    '发票内容': item.FPNR,
+    '工号': item.ygbh,
+    '姓名': item.ygmc,
+    '部门': item.dept_name
+  }))
+
+  const ws = XLSX.utils.json_to_sheet(exportData)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, '发票明细')
+  XLSX.writeFile(wb, `发票明细_${new Date().getTime()}.xlsx`)
+  ElMessage.success('导出成功')
 }
 
 // 执行统计
@@ -382,7 +431,7 @@ const getMonthDetail = async () => {
   detailLoading.value = true
   try {
     const res: any = await request.get('/stats/detail/month', { params: { month: month.value } })
-    detailItems.value = res?.items || []
+    detailItems.value = sortItemsBySupplierAmount(res?.items || [])
   } catch (e) {
     detailItems.value = []
   }
@@ -394,7 +443,7 @@ const openSupplierDetail = async (supplier: string) => {
   detailLoading.value = true
   try {
     const res: any = await request.get('/stats/detail/supplier', { params: { supplier } })
-    detailItems.value = res?.items || []
+    detailItems.value = sortItemsBySupplierAmount(res?.items || [])
   } catch (e) {
     detailItems.value = []
   }
@@ -406,7 +455,7 @@ const openCollegeDetail = async (college: string) => {
   detailLoading.value = true
   try {
     const res: any = await request.get('/stats/detail/college', { params: { college } })
-    detailItems.value = res?.items || []
+    detailItems.value = sortItemsBySupplierAmount(res?.items || [])
   } catch (e) {
     detailItems.value = []
   }
