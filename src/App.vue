@@ -13,7 +13,16 @@
           </el-icon>
           <template #title>财务管理中心</template>
         </el-menu-item>
-
+        <el-sub-menu
+            v-if="canAccess('/stats')"
+            index="stats"
+        >
+          <template #title>
+            <el-icon><Management/></el-icon>
+            <span>统计查询</span>
+          </template>
+          <el-menu-item index="/stats">发票使用统计</el-menu-item>
+        </el-sub-menu>
         <!-- 项目查询模块 -->
         <el-sub-menu
             v-if="canAccess(['/program', '/program_freeze', '/voucher'])"

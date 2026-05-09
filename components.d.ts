@@ -53,6 +53,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SharedForm: typeof import('./src/components/SharedForm.vue')['default']
     SharedProgramForm: typeof import('./src/components/SharedProgramForm.vue')['default']
+    Stats: typeof import('./src/components/Stats.vue')['default']
     Student: typeof import('./src/components/Student.vue')['default']
     SummaryOfResearchSubjects: typeof import('./src/components/SummaryOfResearchSubjects.vue')['default']
     Teacher: typeof import('./src/components/Teacher.vue')['default']

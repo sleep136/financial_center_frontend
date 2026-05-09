@@ -28,6 +28,12 @@ const routes = [
         meta: { keepAlive: true, requiresAuth: true }
     },
     {
+        path: '/stats',
+        name: 'Stats',
+        component: () => import('@/components/Stats.vue'),
+        meta: { keepAlive: true, requiresAuth: true }
+    },
+    {
         path: '/program_freeze',
         name: 'ProgramFreeze',
         component: () => import('@/components/ProgramFreeze.vue'),

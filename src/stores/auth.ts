@@ -71,7 +71,8 @@ export const useAuthStore = defineStore('auth', () => {
         // 会计权限配置
         const accountantAllowedPaths = [
             '/indicator',
-            '/recipe'
+            '/recipe',
+            '/stats'
             // '/program_freeze',
             // '/student',
             // '/authorization',
