@@ -132,15 +132,17 @@
     <!-- 发票明细弹窗 -->
     <el-dialog v-model="detailVisible" :title="curMonthName + '发票明细'" width="95%" append-to-body>
       <el-table :data="detailItems" border v-loading="detailLoading" height="500">
-        <el-table-column prop="FKDWMC" label="付款单位名称" min-width="160" show-overflow-tooltip />
+        <el-table-column prop="FKDWMC" label="付款单位名称" min-width="100" show-overflow-tooltip />
         <el-table-column prop="DZFPH" label="电子发票号" min-width="140" />
         <el-table-column prop="YYDH" label="预约单号" min-width="140" />
         <el-table-column prop="ZJE" label="总金额" min-width="100" align="right" />
         <el-table-column prop="SE" label="发票税额" min-width="100" align="right" />
         <el-table-column prop="KPRQ" label="开票日期" min-width="120" />
+        <el-table-column prop="KPDWMC" label="开票单位" min-width="120" />
         <el-table-column prop="FPNR" label="发票内容" min-width="200" show-overflow-tooltip />
         <el-table-column prop="ygbh" label="录入人工号" min-width="120" />
         <el-table-column prop="ygmc" label="录入人名称" min-width="120" />
+        <el-table-column prop="dept_name" label="录入人所属部门" min-width="100" show-overflow-tooltip/>
       </el-table>
     </el-dialog>
   </div>
