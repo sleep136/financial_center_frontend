@@ -484,11 +484,6 @@ const tableEmptyText = computed(() => {
   return '暂无数据'
 })
 
-// 关闭对话框
-const closeDialogs = (): void => {
-  showAccommodationDialog.value = false
-  showChangeDialog.value = false
-}
 
 // 初始化
 onMounted(() => {
