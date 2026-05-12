@@ -30,6 +30,27 @@ interface StudentInfo {
   bank_card: string
 }
 
+// 住宿信息类型
+interface AccommodationRecord {
+  id: string
+  student_id: string
+  campus: string
+  community: string
+  dormitory_building: string
+  floor: string
+  room_num: string
+  bed_num: string
+  check_in_date: string
+  check_out_date: string
+}
+
+// 异动信息类型
+interface ChangeRecord {
+  student_id: string
+  change_date: string
+  change_type: string
+}
+
 // 搜索表单
 const searchForm = reactive<SearchForm>({
   student_id: ''
@@ -42,6 +63,16 @@ const isFirstLoad = ref(true)
 
 // 学生基础信息
 const studentInfo = ref<StudentInfo | null>(null)
+
+// 住宿信息
+const accommodationData = ref<AccommodationRecord[]>([])
+const showAccommodationDialog = ref(false)
+const accommodationLoading = ref(false)
+
+// 异动信息
+const changeData = ref<ChangeRecord[]>([])
+const showChangeDialog = ref(false)
+const changeLoading = ref(false)
 
 // 分页配置
 const pagination = reactive<PaginationConfig>({
@@ -56,7 +87,10 @@ const MESSAGES = {
   INPUT_STUDENT_ID: '请输入学号',
   NO_DATA_FOUND: '未查询到相关收费记录',
   QUERY_FAILED: '查询失败，请稍后重试',
-  NETWORK_ERROR: '网络错误，请检查网络连接'
+  NETWORK_ERROR: '网络错误，请检查网络连接',
+  NO_ACCOMMODATION_DATA: '该学生暂无住宿信息',
+  NO_CHANGE_DATA: '该学生暂无异动信息',
+  PLEASE_SEARCH_FIRST: '请先查询学生信息'
 } as const
 
 const STATUS_TEXTS = {
@@ -82,7 +116,7 @@ const totalArrears = computed(() => {
   return totalPayable.value - totalPaid.value - totalRefund.value
 })
 
-const hasSearched = computed(() => searchForm.student_id.trim() !== '')
+const hasSearched = computed(() => searchForm.student_id.trim() !== '' && studentInfo.value !== null)
 
 const isEmptyResult = computed(() =>
     hasSearched.value && expenseTableData.value.length === 0 && !loading.value
@@ -149,6 +183,142 @@ const processStudentInfo = (info: any): void => {
     department_name: (info['部门名称'] || '').trim(),
     bank_card: info['银行卡号'] || ''
   }
+}
+
+// 查询住宿信息
+const getAccommodationInfo = async (): Promise<void> => {
+  const studentId = searchForm.student_id.trim()
+
+  if (!studentId) {
+    ElMessage.warning(MESSAGES.INPUT_STUDENT_ID)
+    return
+  }
+
+  if (!studentInfo.value) {
+    ElMessage.warning(MESSAGES.PLEASE_SEARCH_FIRST)
+    return
+  }
+
+  accommodationLoading.value = true
+
+  try {
+    const response = await request.get('/student/accommodation', {
+      params: {
+        student_id: studentId
+      },
+      timeout: 10000
+    })
+
+    const data = response.data || response
+
+    if (Array.isArray(data) && data.length > 0) {
+      accommodationData.value = data
+      showAccommodationDialog.value = true
+    } else {
+      ElMessage.info(MESSAGES.NO_ACCOMMODATION_DATA)
+      accommodationData.value = []
+    }
+  } catch (error: any) {
+    console.error('查询住宿信息失败:', error)
+    handleAccommodationError(error)
+  } finally {
+    accommodationLoading.value = false
+  }
+}
+
+// 查询异动信息
+const getChangeInfo = async (): Promise<void> => {
+  const studentId = searchForm.student_id.trim()
+
+  if (!studentId) {
+    ElMessage.warning(MESSAGES.INPUT_STUDENT_ID)
+    return
+  }
+
+  if (!studentInfo.value) {
+    ElMessage.warning(MESSAGES.PLEASE_SEARCH_FIRST)
+    return
+  }
+
+  changeLoading.value = true
+
+  try {
+    const response = await request.get('/student/change', {
+      params: {
+        student_id: studentId
+      },
+      timeout: 10000
+    })
+
+    const data = response.data || response
+
+    if (Array.isArray(data) && data.length > 0) {
+      changeData.value = data
+      showChangeDialog.value = true
+    } else {
+      ElMessage.info(MESSAGES.NO_CHANGE_DATA)
+      changeData.value = []
+    }
+  } catch (error: any) {
+    console.error('查询异动信息失败:', error)
+    handleChangeError(error)
+  } finally {
+    changeLoading.value = false
+  }
+}
+
+// 住宿信息错误处理
+const handleAccommodationError = (error: any): void => {
+  let errorMessage: string
+
+  if (error.response) {
+    const {status, data} = error.response
+    switch (status) {
+      case 404:
+        errorMessage = '住宿信息接口不存在'
+        break
+      case 500:
+        errorMessage = '服务器内部错误'
+        break
+      default:
+        errorMessage = data?.message || `请求失败 (${status})`
+    }
+  } else if (error.request) {
+    errorMessage = MESSAGES.NETWORK_ERROR
+  } else if (error.message) {
+    errorMessage = error.message
+  } else {
+    errorMessage = '查询住宿信息失败'
+  }
+
+  ElMessage.error(errorMessage)
+}
+
+// 异动信息错误处理
+const handleChangeError = (error: any): void => {
+  let errorMessage: string
+
+  if (error.response) {
+    const {status, data} = error.response
+    switch (status) {
+      case 404:
+        errorMessage = '异动信息接口不存在'
+        break
+      case 500:
+        errorMessage = '服务器内部错误'
+        break
+      default:
+        errorMessage = data?.message || `请求失败 (${status})`
+    }
+  } else if (error.request) {
+    errorMessage = MESSAGES.NETWORK_ERROR
+  } else if (error.message) {
+    errorMessage = error.message
+  } else {
+    errorMessage = '查询异动信息失败'
+  }
+
+  ElMessage.error(errorMessage)
 }
 
 // 搜索查询
@@ -269,6 +439,8 @@ const resetSearch = (): void => {
   pagination.total = 0
   isFirstLoad.value = true
   studentInfo.value = null
+  accommodationData.value = []
+  changeData.value = []
 }
 
 // 排序处理
@@ -298,6 +470,12 @@ const formatAmount = (amount?: number): string => {
   return (amount || 0).toFixed(2)
 }
 
+// 格式化日期
+const formatDate = (date: string): string => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('zh-CN')
+}
+
 // 计算表格空文本
 const tableEmptyText = computed(() => {
   if (loading.value) return ''
@@ -305,6 +483,12 @@ const tableEmptyText = computed(() => {
   if (isEmptyResult.value) return MESSAGES.NO_DATA_FOUND
   return '暂无数据'
 })
+
+// 关闭对话框
+const closeDialogs = (): void => {
+  showAccommodationDialog.value = false
+  showChangeDialog.value = false
+}
 
 // 初始化
 onMounted(() => {
@@ -350,6 +534,28 @@ onMounted(() => {
 
           <el-button @click="resetSearch" :disabled="loading">
             重置
+          </el-button>
+
+          <el-button
+              type="info"
+              :disabled="!studentInfo"
+              @click="getAccommodationInfo"
+          >
+            <el-icon>
+              <House/>
+            </el-icon>
+            住宿信息
+          </el-button>
+
+          <el-button
+              type="warning"
+              :disabled="!studentInfo"
+              @click="getChangeInfo"
+          >
+            <el-icon>
+              <Document/>
+            </el-icon>
+            异动信息
           </el-button>
         </div>
       </div>
@@ -526,6 +732,73 @@ onMounted(() => {
         />
       </div>
     </el-card>
+
+    <!-- 住宿信息对话框 -->
+    <el-dialog
+        v-model="showAccommodationDialog"
+        title="学生住宿信息"
+        width="70%"
+        :close-on-click-modal="false"
+        class="info-dialog"
+    >
+      <div v-loading="accommodationLoading">
+        <el-table
+            :data="accommodationData"
+            border
+            stripe
+            style="width: 100%"
+        >
+          <el-table-column prop="campus" label="校区" width="120" />
+          <el-table-column prop="community" label="社区" width="120" />
+          <el-table-column prop="dormitory_building" label="宿舍楼" width="120" />
+          <el-table-column prop="floor" label="楼层" width="80" />
+          <el-table-column prop="room_num" label="房间号" width="100" />
+          <el-table-column prop="bed_num" label="床位号" width="80" />
+          <el-table-column prop="check_in_date" label="入住日期" width="120">
+            <template #default="{ row }">
+              {{ formatDate(row.check_in_date) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="check_out_date" label="退宿日期" width="120">
+            <template #default="{ row }">
+              {{ formatDate(row.check_out_date) }}
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <template #footer>
+        <el-button @click="showAccommodationDialog = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 异动信息对话框 -->
+    <el-dialog
+        v-model="showChangeDialog"
+        title="学生异动信息"
+        width="50%"
+        :close-on-click-modal="false"
+        class="info-dialog"
+    >
+      <div v-loading="changeLoading">
+        <el-table
+            :data="changeData"
+            border
+            stripe
+            style="width: 100%"
+        >
+          <el-table-column type="index" label="序号" width="60" />
+          <el-table-column prop="change_date" label="异动日期" width="150">
+            <template #default="{ row }">
+              {{ formatDate(row.change_date) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="change_type" label="异动类型" min-width="200" />
+        </el-table>
+      </div>
+      <template #footer>
+        <el-button @click="showChangeDialog = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -701,6 +974,15 @@ onMounted(() => {
   }
 }
 
+// 对话框样式
+.info-dialog {
+  :deep(.el-dialog__body) {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+}
+
 // 动画
 @keyframes fadeIn {
   from {
@@ -744,6 +1026,7 @@ onMounted(() => {
   .form-actions {
     width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
   }
 
   .info-grid {
@@ -770,6 +1053,10 @@ onMounted(() => {
     :deep(.el-pagination__sizes) {
       display: none;
     }
+  }
+
+  .info-dialog {
+    width: 95% !important;
   }
 }
 
