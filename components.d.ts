@@ -11,7 +11,6 @@ declare module 'vue' {
     ApprovalWorkflow: typeof import('./src/components/ApprovalWorkflow.vue')['default']
     Authorization: typeof import('./src/components/Authorization.vue')['default']
     Budget: typeof import('./src/components/Budget.vue')['default']
-    ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElCascader: typeof import('element-plus/es')['ElCascader']
