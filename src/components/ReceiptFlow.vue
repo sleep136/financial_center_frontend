@@ -71,6 +71,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="info" label="详细信息" min-width="200" show-overflow-tooltip />
       </el-table>
     </el-card>
 
