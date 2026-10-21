@@ -52,7 +52,13 @@
       <el-tab-pane label="报销明细" name="报销明细">
         <el-button @click="fetchReservationData" :loading="loading.reservation">查询</el-button>
         <el-table :data="reservationTableData" style="width: 100%" v-loading="loading.reservation">
-          <el-table-column prop="reservation_number" label="报销号" width="180"/>
+          <el-table-column prop="reservation_number" label="报销号" width="180">
+            <template #default="scope">
+              <el-link type="primary" @click="goToReceiptFlow(scope.row)">
+                {{ scope.row.reservation_number }}
+              </el-link>
+            </template>
+          </el-table-column>
           <el-table-column prop="business_order_number" label="业务编号" width="180"/>
           <el-table-column prop="program_id" label="项目编号"/>
           <el-table-column prop="department_id" label="部门编号"/>
@@ -78,7 +84,13 @@
       <el-tab-pane label="劳务明细" name="劳务明细">
         <el-button @click="fetchLaborData" :loading="loading.labor">查询</el-button>
         <el-table :data="laborTableData" style="width: 100%" v-loading="loading.labor">
-          <el-table-column prop="labor_number" label="劳务申报号" width="180"/>
+          <el-table-column prop="labor_number" label="劳务申报号" width="180">
+            <template #default="scope">
+              <el-link type="primary" @click="goToReceiptFlowFromLabor(scope.row)">
+                {{ scope.row.labor_number }}
+              </el-link>
+            </template>
+          </el-table-column>
           <el-table-column prop="business_order_number" label="业务编号" width="180"/>
           <el-table-column prop="program_id" label="项目编号"/>
           <el-table-column prop="department_id" label="部门编号"/>
@@ -106,9 +118,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/requests.ts'
+
+// 路由器
+const router = useRouter()
+const route = useRoute()
 
 // 类型定义
 interface ReservationItem {
@@ -345,6 +362,42 @@ function laborCostTypeFormatter( row: any, column: any, cellValue: number): stri
   return statusMap[cellValue] || String(cellValue)
 }
 
+// 跳转到报销流程查询页面（报销明细）
+function goToReceiptFlow(row: any) {
+  if (!row.reservation_number) {
+    ElMessage.warning('报销号为空')
+    return
+  }
+  router.push({
+    path: '/receipt_flow',
+    query: { 
+      ywlsh: row.reservation_number,
+      department_id: row.department_id || '',
+      program_id: row.program_id || '',
+      work_id: formData.work_id, // 传递工号
+      from: '/recipe' // 记录来源页面
+    }
+  })
+}
+
+// 跳转到报销流程查询页面（劳务明细）
+function goToReceiptFlowFromLabor(row: any) {
+  if (!row.labor_number) {
+    ElMessage.warning('劳务申报号为空')
+    return
+  }
+  router.push({
+    path: '/receipt_flow',
+    query: { 
+      ywlsh: row.labor_number,
+      department_id: row.department_id || '',
+      program_id: row.program_id || '',
+      work_id: formData.work_id, // 传递工号
+      from: '/recipe' // 记录来源页面
+    }
+  })
+}
+
 // ==================== 监听 ====================
 // 切换标签页自动加载数据
 watch(activeTab, (newTab) => {
@@ -358,6 +411,22 @@ watch(queryType, () => {
   laborTableData.value = []
   reservationPagination.total = 0
   laborPagination.total = 0
+})
+
+// 组件挂载时检查是否从报销流程查询页面返回
+onMounted(() => {
+  // 检查是否从报销流程查询页面返回
+  if (route.query.work_id) {
+    formData.work_id = route.query.work_id as string
+  }
+  
+  // 如果有工号，自动触发查询
+  if (formData.work_id) {
+    // 使用 nextTick 确保表单数据已更新
+    setTimeout(() => {
+      fetchReservationData()
+    }, 0)
+  }
 })
 </script>
 

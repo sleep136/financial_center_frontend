@@ -104,6 +104,12 @@ const routes = [
         name: 'Recipe',
         component: () => import('@/components/Recipe.vue'),
         meta: { keepAlive: true, requiresAuth: true }
+    },
+    {
+        path: '/receipt_flow',
+        name: 'ReceiptFlow',
+        component: () => import('@/components/ReceiptFlow.vue'),
+        meta: { keepAlive: true, requiresAuth: true }
     }
 
 

@@ -49,6 +49,7 @@ declare module 'vue' {
     Program: typeof import('./src/components/Program.vue')['default']
     ProgramFreeze: typeof import('./src/components/ProgramFreeze.vue')['default']
     ProgramTransactionDetails: typeof import('./src/components/ProgramTransactionDetails.vue')['default']
+    ReceiptFlow: typeof import('./src/components/ReceiptFlow.vue')['default']
     Recipe: typeof import('./src/components/Recipe.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

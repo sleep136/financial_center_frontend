@@ -72,7 +72,8 @@ export const useAuthStore = defineStore('auth', () => {
         const accountantAllowedPaths = [
             '/indicator',
             '/recipe',
-            '/stats'
+            '/stats',
+            '/receipt_flow'
             // '/program_freeze',
             // '/student',
             // '/authorization',

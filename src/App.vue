@@ -25,7 +25,7 @@
         </el-sub-menu>
         <!-- 项目查询模块 -->
         <el-sub-menu
-            v-if="canAccess(['/program', '/program_freeze', '/voucher'])"
+            v-if="canAccess(['/program', '/program_freeze', '/voucher', '/receipt_flow'])"
             index="project"
         >
           <template #title>
@@ -58,6 +58,12 @@
               index="/budget"
           >
             预算下发查询
+          </el-menu-item>
+          <el-menu-item
+              v-if="canAccess('/receipt_flow')"
+              index="/receipt_flow"
+          >
+            报销流程查询
           </el-menu-item>
         </el-sub-menu>
 
