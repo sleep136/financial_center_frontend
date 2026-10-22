@@ -14,14 +14,25 @@
           <template #title>财务管理中心</template>
         </el-menu-item>
         <el-sub-menu
-            v-if="canAccess('/stats')"
+            v-if="canAccess(['/stats', '/arrears_students'])"
             index="stats"
         >
           <template #title>
             <el-icon><Management/></el-icon>
             <span>统计查询</span>
           </template>
-          <el-menu-item index="/stats">发票使用统计</el-menu-item>
+          <el-menu-item
+              v-if="canAccess('/stats')"
+              index="/stats"
+          >
+            发票使用统计
+          </el-menu-item>
+          <el-menu-item
+              v-if="canAccess('/arrears_students')"
+              index="/arrears_students"
+          >
+            欠费学生统计
+          </el-menu-item>
         </el-sub-menu>
         <!-- 项目查询模块 -->
         <el-sub-menu

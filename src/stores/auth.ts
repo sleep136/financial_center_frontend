@@ -73,7 +73,8 @@ export const useAuthStore = defineStore('auth', () => {
             '/indicator',
             '/recipe',
             '/stats',
-            '/receipt_flow'
+            '/receipt_flow',
+            '/arrears_students'
             // '/program_freeze',
             // '/student',
             // '/authorization',
