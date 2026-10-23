@@ -6,16 +6,20 @@
         <div class="title">欠费学生统计</div>
         <div class="year-selector">
           <span>收费年度：</span>
-          <el-date-picker
+          <el-select
             v-model="feeYear"
-            type="year"
             placeholder="选择收费年度"
-            format="YYYY"
-            value-format="YYYY"
-            style="width: 140px"
+            style="width: 160px"
             :clearable="false"
             @change="loadAllData"
-          />
+          >
+            <el-option
+              v-for="opt in feeYearOptions"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
+          </el-select>
         </div>
       </div>
     </el-card>
@@ -39,7 +43,7 @@
     </div>
 
     <div class="stats-note">
-      统计口径：以上数据均按<strong>收费年度 {{ feeYear }}</strong> 过滤，覆盖该年度全部年级；
+      统计口径：以上数据均按<strong>收费年度 {{ feeYearLabel }}</strong> 过滤，覆盖该年度全部年级；
       同名学院已合并（一个学院可能对应多个部门代码）。学院明细默认展示<strong>全部年级</strong>，人数与卡片一致，也可在弹窗内切换单个年级。
     </div>
 
@@ -183,7 +187,16 @@ interface StudentDetail {
 
 // 响应式数据
 // feeYear 是收费年度(SF_ZZ.SFQJDM)，与学生的入学年度(rxnd/年级)是两个独立维度
+// 值为 'all' 时调用后端 /all 端点，查询所有年度汇总数据
 const feeYear = ref<string>(new Date().getFullYear().toString())
+
+const feeYearOptions = computed(() => [
+  { label: '所有年度', value: 'all' },
+  ...Array.from({ length: 5 }, (_, i) => {
+    const year = (new Date().getFullYear() - i).toString()
+    return { label: year, value: year }
+  })
+])
 const gradeLoading = ref(false)
 const departmentLoading = ref(false)
 const detailLoading = ref(false)
@@ -248,12 +261,14 @@ const departmentGroups = computed<DepartmentGroup[]>(() => {
     .sort((a, b) => b.student_count - a.student_count)
 })
 
+const feeYearLabel = computed(() => feeYear.value === 'all' ? '所有年度' : feeYear.value)
+
 const detailTitle = computed(() => {
   if (detailMode.value === 'department') {
     const gradeLabel = detailGrade.value === ALL_GRADES ? '全部年级' : `${detailGrade.value} 年级`
-    return `${detailDepartmentName.value}（${feeYear.value} 收费年度 · ${gradeLabel}）欠费学生明细`
+    return `${detailDepartmentName.value}（${feeYearLabel.value} · ${gradeLabel}）欠费学生明细`
   }
-  return `${detailGrade.value} 年级（${feeYear.value} 收费年度）欠费学生明细`
+  return `${detailGrade.value} 年级（${feeYearLabel.value}）欠费学生明细`
 })
 
 // 获取总人数
@@ -281,7 +296,10 @@ function loadAllData() {
 async function loadGradeStatistics() {
   gradeLoading.value = true
   try {
-    const res: any = await request.get(`/arrears-students/statistics/grade/${feeYear.value}`)
+    const path = feeYear.value === 'all'
+      ? '/arrears-students/statistics/grade/all'
+      : `/arrears-students/statistics/grade/${feeYear.value}`
+    const res: any = await request.get(path)
     gradeStatistics.value = res?.statistics || []
   } catch (error: any) {
     console.error('加载年级统计失败:', error)
@@ -296,7 +314,10 @@ async function loadGradeStatistics() {
 async function loadDepartmentStatistics() {
   departmentLoading.value = true
   try {
-    const res: any = await request.get(`/arrears-students/statistics/department/${feeYear.value}`)
+    const path = feeYear.value === 'all'
+      ? '/arrears-students/statistics/department/all'
+      : `/arrears-students/statistics/department/${feeYear.value}`
+    const res: any = await request.get(path)
     const list: DepartmentStatistic[] = res?.statistics || []
     // 后端部分学院名称带有尾部换行符，统一清理后再展示/导出
     departmentStatistics.value = list.map(item => ({
@@ -347,22 +368,31 @@ function viewDepartmentDetail(group: DepartmentGroup) {
   loadDepartmentDetail()
 }
 
-// 学院明细接口一次只接受「一个年级 + 一个部门代码」，而合并后的学院跨多个代码、
-// 全部年级又跨多个年级，逐个代码请求会产生 年级数 × 代码数 次请求。
-// 改为按年级拉取该年级全量明细后在前端按代码过滤：实测两种方式结果完全一致，
-// 且各代码间无重复学号，因此过滤拼接不会漏算或重复计数。
+// 学院明细加载：
+// - fee_year=all 时使用 /department/all/all/{code} 专用端点，避免拉取全量数据再过滤
+// - fee_year 为具体年度时，按年级拉取全量明细后在前端按 bmdm 过滤（各代码间无重复学号）
 async function loadDepartmentDetail() {
   detailLoading.value = true
   try {
-    const grades = detailGrade.value === ALL_GRADES
-      ? gradeStatistics.value.map(item => item.rxnd)
-      : [detailGrade.value]
-
-    const lists = await Promise.all(grades.map(grade => fetchGradeStudents(grade)))
     const codes = detailDepartmentCodes.value
-    detailStudents.value = lists
-      .flat()
-      .filter(student => codes.includes(student.bmdm))
+
+    if (feeYear.value === 'all') {
+      const lists = await Promise.all(
+        codes.map(code =>
+          request.get(`/arrears-students/department/all/all/${code}`).then((res: any) => res?.students || [])
+        )
+      )
+      detailStudents.value = lists.flat()
+    } else {
+      const grades = detailGrade.value === ALL_GRADES
+        ? gradeStatistics.value.map(item => item.rxnd)
+        : [detailGrade.value]
+
+      const lists = await Promise.all(grades.map(grade => fetchGradeStudents(grade)))
+      detailStudents.value = lists
+        .flat()
+        .filter(student => codes.includes(student.bmdm))
+    }
 
     if (!detailStudents.value.length) {
       ElMessage.info('该学院暂无欠费学生')
